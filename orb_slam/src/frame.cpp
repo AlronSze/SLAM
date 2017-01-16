@@ -9,7 +9,17 @@ Frame::Frame() : id_(-1), transform_(Eigen::Isometry3d::Identity())
 {
 }
 
-Frame::Frame(const int32_t p_index, const Parameter &p_parameter)
+Frame::Frame(const Frame & p_frame) :
+	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()),
+	depth_image_(p_frame.depth_image_.clone()), desciptors_(p_frame.desciptors_.clone()),
+	key_points_(p_frame.key_points_), transform_(p_frame.transform_),
+	orb_features_max_(p_frame.orb_features_max_), orb_scale_(p_frame.orb_scale_), orb_levels_(p_frame.orb_levels_),
+	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_),
+	dataset_dir_(p_frame.dataset_dir_)
+{
+}
+
+Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(Eigen::Isometry3d::Identity())
 {
 	orb_features_max_ = p_parameter.kORBFeaturesMax_;
 	orb_scale_ = p_parameter.kORBScale_;
@@ -18,8 +28,15 @@ Frame::Frame(const int32_t p_index, const Parameter &p_parameter)
 	orb_threshold_min_ = p_parameter.kORBThresholdMin_;
 	dataset_dir_ = p_parameter.kDatasetDir_;
 
+	camera_fx_ = p_parameter.kCameraParameters_.fx_;
+	camera_fy_ = p_parameter.kCameraParameters_.fy_;
+	camera_cx_ = p_parameter.kCameraParameters_.cx_;
+	camera_cy_ = p_parameter.kCameraParameters_.cy_;
+	camera_scale_ = p_parameter.kCameraParameters_.scale_;
+
 	GetImage(p_index);
 	GetKeyPointAndDesciptor();
+	ComputePoint3D();
 }
 
 void Frame::GetImage(const int32_t p_index)
@@ -54,4 +71,29 @@ void Frame::GetKeyPointAndDesciptor()
 
 	ORB_SLAM2::ORBextractor orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
 	orb(gray, cv::Mat(), key_points_, desciptors_);
+
+	key_point_number_ = key_points_.size();
+}
+
+void Frame::ComputePoint3D()
+{
+	for (int32_t i = 0; i < key_point_number_; i++)
+	{
+		int32_t point_x = key_points_[i].pt.x;
+		int32_t point_y = key_points_[i].pt.y;
+		uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
+
+		if (depth == 0)
+		{
+			point_3d_.push_back(cv::Point3f(0, 0, 0));
+		}
+		else
+		{
+			cv::Point3f point_3f;
+			point_3f.z = (float)depth / camera_scale_;
+			point_3f.x = ((float)point_x - camera_cx_) * point_3f.z / camera_fx_;
+			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
+			point_3d_.push_back(point_3f);
+		}
+	}
 }

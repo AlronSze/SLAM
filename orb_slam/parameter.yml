@@ -1,5 +1,8 @@
 %YAML:1.2
 
+# image number
+image_number : 100
+
 # camera parameters
 camera:
   fx : 517.3
@@ -22,7 +25,7 @@ orb:
   threshold_min : 7
 
 # dataset directory
-dataset_dir : "E:/Develop/SLAM/Dataset/freiburg1_room/"
+dataset_dir : "../../Dataset/freiburg1_room/"
 
 # match ratio
 match_ratio : 0.8
@@ -30,4 +33,4 @@ match_ratio : 0.8
 # point cloud filter parameters
 filter:
   leaf_size : 0.01
-  distance_max : 4.0
+  depth_max : 4.0

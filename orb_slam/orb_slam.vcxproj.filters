@@ -33,6 +33,18 @@
     <ClCompile Include="src\draw_image.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\map.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tracking.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\local_mapping.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loop_closing.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h">
@@ -45,6 +57,18 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\draw_image.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\map.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\tracking.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\local_mapping.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\loop_closing.h">
       <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>

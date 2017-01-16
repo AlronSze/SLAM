@@ -8,6 +8,9 @@ public:
 	~Parameter() {}
 
 public:
+	// image number
+	int32_t image_number_;
+
 	// camera parameters
 	struct CameraParameters {
 		float fx_;
@@ -37,5 +40,5 @@ public:
 
 	// point cloud filter parameters
 	float kFilterLeafSize_;
-	float kFilterDistanceMax_;
+	float kFilterDepthMax_;
 };

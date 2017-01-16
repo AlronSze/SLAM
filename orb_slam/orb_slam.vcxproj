@@ -152,14 +152,22 @@
     <ClCompile Include="3rd_part\orb-slam2\ORBextractor.cpp" />
     <ClCompile Include="src\draw_image.cpp" />
     <ClCompile Include="src\frame.cpp" />
+    <ClCompile Include="src\local_mapping.cpp" />
+    <ClCompile Include="src\loop_closing.cpp" />
+    <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\parameter.cpp" />
+    <ClCompile Include="src\tracking.cpp" />
     <ClCompile Include="test\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h" />
     <ClInclude Include="inc\draw_image.h" />
     <ClInclude Include="inc\frame.h" />
+    <ClInclude Include="inc\local_mapping.h" />
+    <ClInclude Include="inc\loop_closing.h" />
+    <ClInclude Include="inc\map.h" />
     <ClInclude Include="inc\parameter.h" />
+    <ClInclude Include="inc\tracking.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="parameter.yml" />

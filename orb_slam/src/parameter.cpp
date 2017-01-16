@@ -6,6 +6,9 @@ Parameter::Parameter()
 {
 	cv::FileStorage file_storage("parameter.yml", cv::FileStorage::READ);
 
+	// image number
+	file_storage["image_number"] >> image_number_;
+
 	// camera parameters
 	file_storage["camera"]["fx"] >> kCameraParameters_.fx_;
 	file_storage["camera"]["fy"] >> kCameraParameters_.fy_;
@@ -33,7 +36,7 @@ Parameter::Parameter()
 
 	// point cloud filter parameters
 	file_storage["filter"]["leaf_size"] >> kFilterLeafSize_;
-	file_storage["filter"]["distance_max"] >> kFilterDistanceMax_;
+	file_storage["filter"]["depth_max"] >> kFilterDepthMax_;
 
 	file_storage.release();
 }
