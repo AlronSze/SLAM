@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="inc">
+      <UniqueIdentifier>{082e7679-9ca9-411f-a7f2-54b473c071cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_part">
+      <UniqueIdentifier>{3fc3069f-f57b-4167-adeb-b97c4c0d5af2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{c019bcdf-44bb-4f0a-99e6-58ece0dc3d4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_part\orb-slam2">
+      <UniqueIdentifier>{2926135f-54f5-4035-ae10-9f5027dbc0b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{aea3eeec-f415-4389-b01d-3b477d31966c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="3rd_part\orb-slam2\ORBextractor.cpp">
+      <Filter>3rd_part\orb-slam2</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frame.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parameter.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="test\main.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_image.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h">
+      <Filter>3rd_part\orb-slam2</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\frame.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\parameter.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\draw_image.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="parameter.yml" />
+  </ItemGroup>
+</Project>

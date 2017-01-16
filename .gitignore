@@ -1,0 +1,6 @@
+.vs/*
+x64/*
+*.*db
+
+orb_slam/*.bat
+orb_slam/x64/*
