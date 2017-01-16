@@ -1,7 +1,7 @@
 %YAML:1.2
 
 # image number
-image_number : 100
+image_number : 2893
 
 # camera parameters
 camera:
@@ -25,7 +25,7 @@ orb:
   threshold_min : 7
 
 # dataset directory
-dataset_dir : "../../Dataset/freiburg1_room/"
+dataset_dir : "../../Dataset/freiburg2_desk/"
 
 # match ratio
 match_ratio : 0.8

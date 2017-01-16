@@ -22,7 +22,7 @@ int main()
 	Tracking tracking(parameter);
 
 #ifdef DEBUG_DRAW
-	DrawImage draw_image("RGB Image", "Depth Image", true);
+	DrawImage draw_image("RGB Image", "Depth Image", false);
 #endif // DEBUG_DRAW
 
 	int32_t image_number = parameter.image_number_;

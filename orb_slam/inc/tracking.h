@@ -35,6 +35,8 @@ private:
 	int32_t ref_inliers_;
 	cv::Mat camera_K_;
 	cv::Mat camera_D_;
+	cv::Mat cur_rotation_;
+	cv::Mat cur_translation_;
 	Frame *cur_frame_;
 	Frame *last_frame_;
 	Frame *ref_frames_;
