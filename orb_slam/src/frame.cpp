@@ -10,7 +10,7 @@ Frame::Frame() : id_(-1), transform_(Eigen::Isometry3d::Identity())
 }
 
 Frame::Frame(const Frame & p_frame) :
-	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()), depth_image_(p_frame.depth_image_.clone()), desciptors_(p_frame.desciptors_.clone()),
+	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()), depth_image_(p_frame.depth_image_.clone()), descriptors_(p_frame.descriptors_.clone()),
 	key_points_(p_frame.key_points_), transform_(p_frame.transform_), point_3d_(p_frame.point_3d_), key_point_number_(p_frame.key_point_number_),
 	orb_features_max_(p_frame.orb_features_max_), orb_scale_(p_frame.orb_scale_), orb_levels_(p_frame.orb_levels_),
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
@@ -35,7 +35,7 @@ Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(
 	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 
 	GetImage(p_index);
-	GetKeyPointAndDesciptor();
+	GetKeyPointAndDescriptor();
 	ComputePoint3D();
 }
 
@@ -64,13 +64,13 @@ void Frame::GetImage(const int32_t p_index)
 	}
 }
 
-void Frame::GetKeyPointAndDesciptor()
+void Frame::GetKeyPointAndDescriptor()
 {
 	cv::Mat gray;
 	cv::cvtColor(rgb_image_, gray, CV_BGR2GRAY);
 
 	ORB_SLAM2::ORBextractor orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
-	orb(gray, cv::Mat(), key_points_, desciptors_);
+	orb(gray, cv::Mat(), key_points_, descriptors_);
 
 	key_point_number_ = (int32_t)key_points_.size();
 }
@@ -112,4 +112,14 @@ void Frame::ReleaseImage()
 {
 	rgb_image_.release();
 	depth_image_.release();
+}
+
+std::vector<cv::Mat> Frame::GetDescriptorVector() const
+{
+	std::vector<cv::Mat> result;
+	for (int32_t i = 0; i < key_point_number_; i++)
+	{
+		result.push_back(descriptors_.row(i).clone());
+	}
+	return result;
 }

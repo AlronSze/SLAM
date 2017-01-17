@@ -41,4 +41,9 @@ public:
 	// point cloud filter parameters
 	float kFilterLeafSize_;
 	float kFilterDepthMax_;
+
+	// pnp parameters
+	int kPNPIterationsCount_;
+	float kPNPError_;
+	int kPNPMinInliersCount_;
 };

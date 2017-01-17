@@ -17,9 +17,10 @@ int main()
 {
 	Parameter parameter;
 	Map map;
-	LocalMapping local_mapping;
-	LoopClosing loop_closing;
-	Tracking tracking(parameter);
+	// LocalMapping local_mapping;
+	LoopClosing loop_closing(parameter);
+	Tracking tracking(parameter, &loop_closing);
+	loop_closing.GetTracking(&tracking);
 
 #ifdef DEBUG_DRAW
 	DrawImage draw_image("RGB Image", "Depth Image", false);

@@ -6,9 +6,11 @@
 #include "parameter.h"
 #include "frame.h"
 
+class LoopClosing;
+
 class Tracking {
 public:
-	Tracking(const Parameter & p_parameter);
+	Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing);
 
 	void GetFrame(Frame * p_frame);
 
@@ -30,13 +32,16 @@ private:
 
 	float match_ratio_;
 	float camera_scale_;
+	int pnp_iterations_count_;
+	float pnp_error_;
+	int pnp_min_inliers_count_;
 	int32_t cur_inliers_;
-	int32_t ref_inliers_;
 	cv::Mat camera_K_;
 	cv::Mat camera_D_;
 	cv::Mat cur_rotation_;
 	cv::Mat cur_translation_;
 	Frame *cur_frame_;
 	Frame last_frame_;
-	std::deque<Frame> key_frames_;
+	std::vector<Frame> key_frames_;
+	LoopClosing *loop_closing_;
 };

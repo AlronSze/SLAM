@@ -4,7 +4,10 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-Tracking::Tracking(const Parameter & p_parameter) : tracking_state_(INITIALIZE), cur_inliers_(0), ref_inliers_(0)
+#include "../inc/loop_closing.h"
+
+Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
+	tracking_state_(INITIALIZE), cur_inliers_(0), loop_closing_(p_loop_closing)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -23,6 +26,9 @@ Tracking::Tracking(const Parameter & p_parameter) : tracking_state_(INITIALIZE),
 
 	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 	match_ratio_ = p_parameter.kMatchRatio_;
+	pnp_iterations_count_ = p_parameter.kPNPIterationsCount_;
+	pnp_error_ = p_parameter.kPNPError_;
+	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
 }
 
 void Tracking::GetFrame(Frame * p_frame)
@@ -40,6 +46,7 @@ void Tracking::Track()
 		if (Initialization())
 		{
 			key_frames_.push_back(Frame(*cur_frame_));
+			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
 		}
 
 		last_frame_ = Frame(*cur_frame_);
@@ -67,6 +74,7 @@ void Tracking::Track()
 		{
 			std::cout << "Insert New Key Frame!" << std::endl;
 			key_frames_.push_back(Frame(*cur_frame_));
+			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
 		}
 	}
 
@@ -173,7 +181,7 @@ std::vector<cv::DMatch> Tracking::MatchTwoFrame(const Frame & p_query_frame, con
 	std::vector<std::vector<cv::DMatch>> matches_knn;
 	std::vector<cv::DMatch> matches;
 
-	matcher.knnMatch(p_query_frame.desciptors_, p_train_frame.desciptors_, matches_knn, 2);
+	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
 
 	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
 	{
@@ -212,7 +220,8 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 	}
 
 	cv::Mat inliers;
-	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_, cur_rotation_, cur_translation_, false, 300, 5.991f, 8, inliers);
+	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_, 
+		cur_rotation_, cur_translation_, false, pnp_iterations_count_, pnp_error_, pnp_min_inliers_count_, inliers);
 
 	cv::Mat rotation_3x3;
 	Rodrigues(cur_rotation_, rotation_3x3);
