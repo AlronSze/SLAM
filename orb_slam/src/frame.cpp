@@ -10,12 +10,12 @@ Frame::Frame() : id_(-1), transform_(Eigen::Isometry3d::Identity())
 }
 
 Frame::Frame(const Frame & p_frame) :
-	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()),
-	depth_image_(p_frame.depth_image_.clone()), desciptors_(p_frame.desciptors_.clone()),
-	key_points_(p_frame.key_points_), transform_(p_frame.transform_),
+	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()), depth_image_(p_frame.depth_image_.clone()), desciptors_(p_frame.desciptors_.clone()),
+	key_points_(p_frame.key_points_), transform_(p_frame.transform_), point_3d_(p_frame.point_3d_), key_point_number_(p_frame.key_point_number_),
 	orb_features_max_(p_frame.orb_features_max_), orb_scale_(p_frame.orb_scale_), orb_levels_(p_frame.orb_levels_),
-	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_),
-	dataset_dir_(p_frame.dataset_dir_)
+	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
+	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
+	camera_scale_(p_frame.camera_scale_), point_rgb_(p_frame.point_rgb_), point_depth_(p_frame.point_depth_)
 {
 }
 
@@ -72,20 +72,22 @@ void Frame::GetKeyPointAndDesciptor()
 	ORB_SLAM2::ORBextractor orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
 	orb(gray, cv::Mat(), key_points_, desciptors_);
 
-	key_point_number_ = key_points_.size();
+	key_point_number_ = (int32_t)key_points_.size();
 }
 
 void Frame::ComputePoint3D()
 {
 	for (int32_t i = 0; i < key_point_number_; i++)
 	{
-		int32_t point_x = key_points_[i].pt.x;
-		int32_t point_y = key_points_[i].pt.y;
+		int32_t point_x = (int32_t)key_points_[i].pt.x;
+		int32_t point_y = (int32_t)key_points_[i].pt.y;
 		uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
 		if (depth == 0)
 		{
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
+			point_rgb_.push_back(RGB());
+			point_depth_.push_back(depth);
 		}
 		else
 		{
@@ -94,6 +96,20 @@ void Frame::ComputePoint3D()
 			point_3f.x = ((float)point_x - camera_cx_) * point_3f.z / camera_fx_;
 			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
 			point_3d_.push_back(point_3f);
+
+			struct RGB rgb;
+			rgb.r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
+			rgb.g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
+			rgb.b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];
+			point_rgb_.push_back(rgb);
+
+			point_depth_.push_back(depth);
 		}
 	}
+}
+
+void Frame::ReleaseImage()
+{
+	rgb_image_.release();
+	depth_image_.release();
 }

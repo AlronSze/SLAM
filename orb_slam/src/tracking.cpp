@@ -4,13 +4,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-//#include <g2o/core/block_solver.h>
-//#include <g2o/core/optimization_algorithm_levenberg.h>
-//#include <g2o/solvers/dense/linear_solver_dense.h>
-//#include <g2o/types/sba/types_six_dof_expmap.h>
-//#include <g2o/types/slam3d/edge_se3.h>
-
-Tracking::Tracking(const Parameter & p_parameter) : tracking_state_(INITIALIZE), lost_count_(0), cur_inliers_(0), ref_inliers_(0)
+Tracking::Tracking(const Parameter & p_parameter) : tracking_state_(INITIALIZE), cur_inliers_(0), ref_inliers_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -43,7 +37,13 @@ void Tracking::Track()
 
 	if (tracking_state_ == INITIALIZE)
 	{
-		is_tracked = Initialization();
+		if (Initialization())
+		{
+			key_frames_.push_back(Frame(*cur_frame_));
+		}
+
+		last_frame_ = Frame(*cur_frame_);
+		return;
 	}
 	else if (tracking_state_ == OK)
 	{
@@ -60,19 +60,17 @@ void Tracking::Track()
 
 	if (is_tracked)
 	{
-		lost_count_ = 0;
-
+		// TO DO: SHOULD FIX CONDITIONS
 		double norm = fabs(cv::norm(cur_translation_)) + fabs(std::min(cv::norm(cur_rotation_), 2.0 * M_PI - cv::norm(cur_rotation_)));
 
 		if ((norm < 0.2) && (norm > 0.1))
 		{
 			std::cout << "Insert New Key Frame!=============================================" << std::endl;
-			key_frames_.push_back(cur_frame_);
-			ref_frames_ = cur_frame_;
+			key_frames_.push_back(Frame(*cur_frame_));
 		}
 	}
 
-	last_frame_ = cur_frame_;
+	last_frame_ = Frame(*cur_frame_);
 }
 
 bool Tracking::Initialization()
@@ -80,8 +78,6 @@ bool Tracking::Initialization()
 	if (cur_frame_->key_point_number_ >= 500)
 	{
 		std::cout << "Tracking Initialized!" << std::endl;
-		key_frames_.push_back(cur_frame_);
-		ref_frames_ = cur_frame_;
 		tracking_state_ = OK;
 		return true;
 	}
@@ -94,7 +90,7 @@ bool Tracking::Initialization()
 
 bool Tracking::TrackWithMotion()
 {
-	std::vector<cv::DMatch> matches = MatchTwoFrame(last_frame_, cur_frame_);
+	std::vector<cv::DMatch> matches = MatchTwoFrame(last_frame_, *cur_frame_);
 	int32_t matches_size = (int32_t)matches.size();
 	if (matches_size < 20)
 	{
@@ -102,7 +98,7 @@ bool Tracking::TrackWithMotion()
 		return false;
 	}
 
-	cur_inliers_ = OptimizePose(last_frame_, cur_frame_, matches);
+	cur_inliers_ = OptimizePose(last_frame_, *cur_frame_, matches);
 
 	if (cur_inliers_ <= 10)
 	{
@@ -116,29 +112,23 @@ bool Tracking::TrackWithMotion()
 
 bool Tracking::TrackWithRefFrame()
 {
-	std::vector<cv::DMatch> matches = MatchTwoFrame(ref_frames_, cur_frame_);
+	std::vector<cv::DMatch> matches = MatchTwoFrame(key_frames_.back(), *cur_frame_);
 	int32_t matches_size = (int32_t)matches.size();
 	if (matches_size < 20)
 	{
 		std::cout << "Tracking With RefFrame Failed!" << std::endl;
-		if (++lost_count_ >= 10)
-		{
-			std::cout << "Tracking Lost!" << std::endl;
-			tracking_state_ = LOST;
-		}
+		std::cout << "Tracking Lost!" << std::endl;
+		tracking_state_ = LOST;
 		return false;
 	}
 
-	cur_inliers_ = OptimizePose(ref_frames_, cur_frame_, matches);
+	cur_inliers_ = OptimizePose(key_frames_.back(), *cur_frame_, matches);
 
 	if (cur_inliers_ <= 10)
 	{
 		std::cout << "Tracking With RefFrame Failed!" << std::endl;
-		if (++lost_count_ >= 10)
-		{
-			std::cout << "Tracking Lost!" << std::endl;
-			tracking_state_ = LOST;
-		}
+		std::cout << "Tracking Lost!" << std::endl;
+		tracking_state_ = LOST;
 		return false;
 	}
 
@@ -152,14 +142,14 @@ bool Tracking::Relocalization()
 
 	for (int32_t i = key_frame_size - 1; i >= 0; i--)
 	{
-		std::vector<cv::DMatch> matches = MatchTwoFrame(key_frames_[i], cur_frame_);
+		std::vector<cv::DMatch> matches = MatchTwoFrame(key_frames_[i], *cur_frame_);
 		int32_t matches_size = (int32_t)matches.size();
 		if (matches_size < 20)
 		{
 			continue;
 		}
 
-		cur_inliers_ = OptimizePose(key_frames_[i], cur_frame_, matches);
+		cur_inliers_ = OptimizePose(key_frames_[i], *cur_frame_, matches);
 
 		if (cur_inliers_ <= 10)
 		{
@@ -177,13 +167,13 @@ bool Tracking::Relocalization()
 	return false;
 }
 
-std::vector<cv::DMatch> Tracking::MatchTwoFrame(const Frame * p_query_frame, const Frame * p_train_frame)
+std::vector<cv::DMatch> Tracking::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame)
 {
 	cv::BruteForceMatcher<cv::HammingLUT> matcher;
 	std::vector<std::vector<cv::DMatch>> matches_knn;
 	std::vector<cv::DMatch> matches;
 
-	matcher.knnMatch(p_query_frame->desciptors_, p_train_frame->desciptors_, matches_knn, 2);
+	matcher.knnMatch(p_query_frame.desciptors_, p_train_frame.desciptors_, matches_knn, 2);
 
 	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
 	{
@@ -196,7 +186,7 @@ std::vector<cv::DMatch> Tracking::MatchTwoFrame(const Frame * p_query_frame, con
 	return matches;
 }
 
-int32_t Tracking::OptimizePose(const Frame * p_query_frame, Frame * p_train_frame, std::vector<cv::DMatch> & p_matches)
+int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, std::vector<cv::DMatch> & p_matches)
 {
 	float camera_fx = camera_K_.at<float>(0, 0);
 	float camera_fy = camera_K_.at<float>(1, 1);
@@ -209,21 +199,11 @@ int32_t Tracking::OptimizePose(const Frame * p_query_frame, Frame * p_train_fram
 
 	for (int32_t i = 0; i < matches_size; i++)
 	{
-		cv::Point2f point_2f = p_query_frame->key_points_[p_matches[i].queryIdx].pt;
-		uint16_t depth = p_train_frame->depth_image_.ptr<uint16_t>((int32_t)point_2f.y)[(int32_t)point_2f.x];
-
+		uint16_t depth = p_query_frame.point_depth_[p_matches[i].queryIdx];
 		if (depth == 0) continue;
 
-		train_frame_points.push_back(cv::Point2f(p_train_frame->key_points_[p_matches[i].trainIdx].pt));
-
-		cv::Point3f point_3f(point_2f.x, point_2f.y, (float)depth);
-
-		cv::Point3f world_point;
-		world_point.z = point_3f.z / camera_scale_;
-		world_point.x = (point_3f.x - camera_cx) * world_point.z / camera_fx;
-		world_point.y = (point_3f.y - camera_cy) * world_point.z / camera_fy;
-
-		query_frame_points.push_back(world_point);
+		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[p_matches[i].queryIdx]));
+		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[p_matches[i].trainIdx].pt));
 	}
 
 	if ((query_frame_points.size() == 0) || (train_frame_points.size() == 0))
@@ -244,7 +224,7 @@ int32_t Tracking::OptimizePose(const Frame * p_query_frame, Frame * p_train_fram
 	transform(0, 3) = cur_translation_.at<double>(0, 0);
 	transform(1, 3) = cur_translation_.at<double>(1, 0);
 	transform(2, 3) = cur_translation_.at<double>(2, 0);
-	p_train_frame->SetTransform(transform);
+	p_train_frame.SetTransform(transform);
 
 	// std::cout << "Transform Matrix:" << std::endl << transform.matrix() << std::endl;
 	std::cout << "Inliers number: " << inliers.rows << std::endl;

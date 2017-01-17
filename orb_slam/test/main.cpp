@@ -32,11 +32,15 @@ int main()
 		std::cout << "Load image: " << i << ".png" << std::endl;
 		Frame *frame = new Frame(i, parameter);
 
-		tracking.GetFrame(frame);
-
 #ifdef DEBUG_DRAW
 		draw_image.toDrawFrame(*frame, 1);
 #endif // DEBUG_DRAW
+
+		frame->ReleaseImage();
+
+		tracking.GetFrame(frame);
+
+		delete frame;
 	}
 
     return 0;

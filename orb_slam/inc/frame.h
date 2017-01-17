@@ -17,6 +17,7 @@ public:
 	void GetImage(const int32_t p_index);
 	void GetKeyPointAndDesciptor();
 	void ComputePoint3D();
+	void ReleaseImage();
 	inline cv::Point2f GetPoint2D(const int32_t p_index) const;
 	inline cv::Point3f GetPoint3D(const int32_t p_index) const;
 	inline uint16_t GetDepth(const int32_t p_y, const int32_t p_x) const;
@@ -24,13 +25,22 @@ public:
 	inline Eigen::Isometry3d GetTransform();
 
 public:
+	struct RGB {
+		uint8_t r_;
+		uint8_t g_;
+		uint8_t b_;
+	};
+
 	int32_t id_;
+	int32_t key_point_number_;
 	cv::Mat rgb_image_;
 	cv::Mat depth_image_;
 	cv::Mat desciptors_;
+
 	std::vector<cv::KeyPoint> key_points_;
 	std::vector<cv::Point3f> point_3d_;
-	int32_t key_point_number_;
+	std::vector<RGB> point_rgb_;
+	std::vector<uint16_t> point_depth_;
 
 private:
 	int32_t orb_features_max_;
