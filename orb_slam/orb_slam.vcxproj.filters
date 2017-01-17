@@ -16,6 +16,9 @@
     <Filter Include="test">
       <UniqueIdentifier>{aea3eeec-f415-4389-b01d-3b477d31966c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd_part\dbow2">
+      <UniqueIdentifier>{dc1f03eb-6637-405c-a279-de3a490f96e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rd_part\orb-slam2\ORBextractor.cpp">
@@ -45,6 +48,27 @@
     <ClCompile Include="src\loop_closing.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\BowVector.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FBrief.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FeatureVector.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FORB.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FSurf64.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\QueryResults.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\ScoringObject.cpp">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h">
@@ -70,6 +94,39 @@
     </ClInclude>
     <ClInclude Include="inc\loop_closing.h">
       <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\BowVector.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\DBoW2.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FBrief.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FClass.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FeatureVector.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FORB.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FSurf64.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\QueryResults.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\ScoringObject.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\TemplatedDatabase.h">
+      <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
+      <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

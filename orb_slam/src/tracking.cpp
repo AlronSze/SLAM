@@ -1,4 +1,4 @@
-#include "tracking.h"
+#include "../inc/tracking.h"
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
@@ -65,7 +65,7 @@ void Tracking::Track()
 
 		if ((norm < 0.2) && (norm > 0.1))
 		{
-			std::cout << "Insert New Key Frame!=============================================" << std::endl;
+			std::cout << "Insert New Key Frame!" << std::endl;
 			key_frames_.push_back(Frame(*cur_frame_));
 		}
 	}

@@ -1,4 +1,4 @@
-#include "draw_image.h"
+#include "../inc/draw_image.h"
 
 #include <opencv2/highgui/highgui.hpp>
 

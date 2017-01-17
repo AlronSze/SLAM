@@ -1,4 +1,4 @@
-#include "parameter.h"
+#include "../inc/parameter.h"
 
 #include <opencv2/core/core.hpp>
 
