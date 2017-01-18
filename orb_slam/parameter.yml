@@ -3,18 +3,31 @@
 # image number
 image_number : 2893
 
-# camera parameters
+# camera parameters fr1
+#camera:
+#  fx : 517.3
+#  fy : 516.5
+#  cx : 318.6
+#  cy : 255.3
+#  scale : 5000.0
+#  d0 : 0.2624
+#  d1 : -0.9531
+#  d2 : -0.0054
+#  d3 : 0.0026
+#  d4 : 1.1633
+
+# camera parameters fr2
 camera:
-  fx : 517.3
-  fy : 516.5
-  cx : 318.6
-  yx : 255.3
+  fx : 520.9
+  fy : 521.0
+  cx : 325.1
+  cy : 249.7
   scale : 5000.0
-  d0 : 0.2624
-  d1 : -0.9531
-  d2 : -0.0054
-  d3 : 0.0026
-  d4 : 1.1633
+  d0 : 0.2312
+  d1 : -0.7849
+  d2 : -0.0033
+  d3 : -0.0001
+  d4 : 0.9172
 
 # orb parameters
 orb:
@@ -28,7 +41,7 @@ orb:
 dataset_dir : "../../Dataset/freiburg2_desk/"
 
 # match ratio
-match_ratio : 0.8
+match_ratio : 0.9
 
 # point cloud filter parameters
 filter:
@@ -37,6 +50,15 @@ filter:
 
 # pnp parameters
 pnp:
-  iterations_count : 300
+  iterations_count : 500
   error : 5.991
-  min_inliers_count : 8
+  min_inliers_count : 10
+  inliers_threshold : 100
+
+# vocabulary directory
+vocabulary_dir : "ORBvoc.txt"
+
+# dbow2 loop parameters
+dbow2:
+  score_min : 0.02
+  interval_min : 60

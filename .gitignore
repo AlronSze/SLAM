@@ -2,5 +2,7 @@
 x64/*
 *.*db
 
+orb_slam/*.g2o
+orb_slam/*.txt
 orb_slam/*.bat
 orb_slam/x64/*

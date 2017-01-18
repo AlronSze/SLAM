@@ -4,12 +4,14 @@
 
 class Parameter{
 public:
-	Parameter();
-	~Parameter() {}
+	Parameter(const std::string p_yml_name);
+
+private:
+	void print();
 
 public:
 	// image number
-	int32_t image_number_;
+	int32_t kImageNumber_;
 
 	// camera parameters
 	struct CameraParameters {
@@ -46,4 +48,12 @@ public:
 	int kPNPIterationsCount_;
 	float kPNPError_;
 	int kPNPMinInliersCount_;
+	int KPNPInliersThreshold_;
+
+	// vocabulary directory
+	std::string kVocabularyDir_;
+
+	// dbow2 loop parameters
+	double kDBoW2ScoreMin;
+	int kDBoW2IntervalMin;
 };

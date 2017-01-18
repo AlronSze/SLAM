@@ -1,13 +1,14 @@
 #include "../inc/parameter.h"
 
+#include <iostream>
 #include <opencv2/core/core.hpp>
 
-Parameter::Parameter()
+Parameter::Parameter(const std::string p_yml_name)
 {
-	cv::FileStorage file_storage("parameter.yml", cv::FileStorage::READ);
+	cv::FileStorage file_storage(p_yml_name, cv::FileStorage::READ);
 
 	// image number
-	file_storage["image_number"] >> image_number_;
+	file_storage["image_number"] >> kImageNumber_;
 
 	// camera parameters
 	file_storage["camera"]["fx"] >> kCameraParameters_.fx_;
@@ -42,6 +43,40 @@ Parameter::Parameter()
 	file_storage["pnp"]["iterations_count"] >> kPNPIterationsCount_;
 	file_storage["pnp"]["error"] >> kPNPError_;
 	file_storage["pnp"]["min_inliers_count"] >> kPNPMinInliersCount_;
+	file_storage["pnp"]["inliers_threshold"] >> KPNPInliersThreshold_;
+
+	// vocabulary directory
+	file_storage["vocabulary_dir"] >> kVocabularyDir_;
+
+	// dbow2 loop parameters
+	file_storage["dbow2"]["score_min"] >> kDBoW2ScoreMin;
+	file_storage["dbow2"]["interval_min"] >> kDBoW2IntervalMin;
 
 	file_storage.release();
+
+	print();
+}
+
+void Parameter::print()
+{
+	std::cout << std::endl << "===================== Parameters =====================" << std::endl;
+
+	std::cout << "Camera Intrinsic fx    : " << kCameraParameters_.fx_ << std::endl;
+	std::cout << "Camera Intrinsic fy    : " << kCameraParameters_.fy_ << std::endl;
+	std::cout << "Camera Intrinsic cx    : " << kCameraParameters_.cx_ << std::endl;
+	std::cout << "Camera Intrinsic cy    : " << kCameraParameters_.cy_ << std::endl;
+	std::cout << "Camera Intrinsic d0    : " << kCameraParameters_.d0_ << std::endl;
+	std::cout << "Camera Intrinsic d1    : " << kCameraParameters_.d1_ << std::endl;
+	std::cout << "Camera Intrinsic d2    : " << kCameraParameters_.d2_ << std::endl;
+	std::cout << "Camera Intrinsic d3    : " << kCameraParameters_.d3_ << std::endl;
+	std::cout << "Camera Intrinsic d4    : " << kCameraParameters_.d4_ << std::endl;
+	std::cout << "Camera Intrinsic scale : " << kCameraParameters_.scale_ << std::endl;
+
+	std::cout << "Dataset Directory      : " << kDatasetDir_ << std::endl;
+
+	std::cout << "Number Of Images       : " << kImageNumber_ << std::endl;
+
+	std::cout << "Vocabulary Directory   : " << kVocabularyDir_ << std::endl;
+
+	std::cout << "======================================================" << std::endl << std::endl;
 }

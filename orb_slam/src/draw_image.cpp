@@ -6,7 +6,10 @@ DrawImage::DrawImage(const std::string p_rgb_name, const std::string p_depth_nam
 	rgb_name_(p_rgb_name), depth_name_(p_depth_name), key_point_name_(p_rgb_name + " - KeyPoint"), show_key_point_(p_show_key_point)
 {
 	cv::namedWindow(p_rgb_name, cv::WINDOW_NORMAL);
-	cv::namedWindow(p_depth_name, cv::WINDOW_NORMAL);
+	if (!p_depth_name.empty())
+	{
+		cv::namedWindow(p_depth_name, cv::WINDOW_NORMAL);
+	}
 	if (p_show_key_point)
 	{
 		cv::namedWindow(p_rgb_name + " - KeyPoint", cv::WINDOW_NORMAL);
@@ -16,7 +19,10 @@ DrawImage::DrawImage(const std::string p_rgb_name, const std::string p_depth_nam
 void DrawImage::toDrawFrame(const Frame & p_frame, const int32_t p_wait_time)
 {
 	cv::imshow(rgb_name_, p_frame.rgb_image_);
-	cv::imshow(depth_name_, p_frame.depth_image_);
+	if (!depth_name_.empty())
+	{
+		cv::imshow(depth_name_, p_frame.depth_image_);
+	}
 	if (show_key_point_)
 	{
 		cv::Mat key_point_image;
