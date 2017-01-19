@@ -35,7 +35,7 @@ LoopClosing::LoopClosing(const Parameter & p_parameter) : local_error_sum_(0.0),
 	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 
-	// LoadVocabulary();
+	LoadVocabulary();
 	InitializeG2O();
 }
 
@@ -64,7 +64,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 	if (key_frames_.size() != 0)
 	{
 		AddCurFrameToGraph();
-		// LoopClose();
+		LoopClose();
 		key_frames_.push_back(cur_frame_);
 	}
 	else
@@ -87,18 +87,24 @@ void LoopClosing::AddCurFrameToGraph()
 	optimizer_.addVertex(vertex);
 
 	g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-
-	//g2o::VertexSE3* vertex_0 = dynamic_cast<g2o::VertexSE3 *>(optimizer_.vertex(key_frames_.back().id_));
-	//g2o::VertexSE3* vertex_1 = dynamic_cast<g2o::VertexSE3 *>(optimizer_.vertex(cur_frame_.id_));
-	//edge->setVertex(1, vertex_0);
-	//edge->setVertex(0, vertex_1);
-	//edge->setMeasurementFromState();
 	edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
 	edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
 	edge->setMeasurement(cur_frame_.GetTransform());
-
 	edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
+	edge->computeError();
+
+	if (edge->chi2() >= 5.0)
+	{
+		delete edge;
+		edge = new g2o::EdgeSE3();
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
+		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+		edge->setMeasurement(key_frames_.back().GetTransform());
+		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
+		edge->setRobustKernel(new g2o::RobustKernelHuber());
+	}
+
 	optimizer_.addEdge(edge);
 }
 
@@ -121,11 +127,19 @@ void LoopClosing::LoopClose()
 		edge->setMeasurement(transform);
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
-		optimizer_.addEdge(edge);
 		edge->computeError();
-		std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
-		local_error_sum_ += edge->chi2();
-		std::cout << ", total error: " << local_error_sum_ << std::endl;
+
+		if (edge->chi2() <= 5.0)
+		{
+			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
+			local_error_sum_ += edge->chi2();
+			std::cout << ", total error: " << local_error_sum_ << std::endl;
+			optimizer_.addEdge(edge);
+		}
+		else
+		{
+			delete edge;
+		}
 	}
 
 	std::cout << "Detecting global loop closure..." << std::endl;
@@ -149,11 +163,19 @@ void LoopClosing::LoopClose()
 		edge->setMeasurement(transform);
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
-		optimizer_.addEdge(edge);
 		edge->computeError();
-		std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
-		global_error_sum_ += edge->chi2();
-		std::cout << ", total error: " << global_error_sum_ << std::endl;
+
+		if (edge->chi2() <= 5.0)
+		{
+			std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
+			global_error_sum_ += edge->chi2();
+			std::cout << ", total error: " << global_error_sum_ << std::endl;
+			optimizer_.addEdge(edge);
+		}
+		else
+		{
+			delete edge;
+		}
 	}
 }
 

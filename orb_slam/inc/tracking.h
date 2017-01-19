@@ -46,4 +46,5 @@ private:
 	LoopClosing *loop_closing_;
 	int last_key_frame_dist_;
 	Eigen::Isometry3d speed_;
+	int relocalization_count_;
 };

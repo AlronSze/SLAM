@@ -50,7 +50,7 @@ filter:
 
 # pnp parameters
 pnp:
-  iterations_count : 500
+  iterations_count : 1000
   error : 5.991
   min_inliers_count : 10
   inliers_threshold : 100
@@ -60,5 +60,5 @@ vocabulary_dir : "ORBvoc.txt"
 
 # dbow2 loop parameters
 dbow2:
-  score_min : 0.02
+  score_min : 0.015
   interval_min : 60

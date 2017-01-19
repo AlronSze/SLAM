@@ -5,7 +5,8 @@
 #include <opencv2/legacy/legacy.hpp>
 
 Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
-	tracking_state_(INITIALIZE), cur_inliers_(0), loop_closing_(p_loop_closing), last_key_frame_dist_(0), speed_(Eigen::Isometry3d::Identity())
+	tracking_state_(INITIALIZE), cur_inliers_(0), loop_closing_(p_loop_closing), last_key_frame_dist_(0), 
+	speed_(Eigen::Isometry3d::Identity()), relocalization_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -135,7 +136,7 @@ bool Tracking::Relocalization()
 
 	int32_t key_frame_size = (int32_t)key_frames_.size();
 	int32_t delete_frames_count = 0;
-	for (int32_t i = key_frame_size - 1; (i >= 0) && (i >= key_frame_size - 1 - 20); i--)
+	for (int32_t i = key_frame_size - 1; (i >= 0) && (i >= key_frame_size - 1 - 10); i--)
 	{
 		cur_inliers_ = OptimizePose(key_frames_[i], *cur_frame_);
 		if (cur_inliers_ < pnp_inliers_threshold_)
@@ -153,6 +154,15 @@ bool Tracking::Relocalization()
 			loop_closing_->key_frames_.pop_back();
 		}
 
+		relocalization_count_ = 0;
+		return true;
+	}
+
+	if (++relocalization_count_ >= 4)
+	{
+		std::cout << "Tracking Relocalization by Last Key Frame." << std::endl;
+		relocalization_count_ = 0;
+		cur_frame_->SetTransform(key_frames_.back().GetTransform());
 		return true;
 	}
 
@@ -183,6 +193,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 {
 	std::vector<cv::DMatch> matches = MatchTwoFrame(p_query_frame, p_train_frame);
 	int32_t matches_size = (int32_t)matches.size();
+	//std::cout << "Matches number: " << matches_size << std::endl;
 	if (matches_size < pnp_inliers_threshold_)
 	{
 		return 0;
@@ -204,6 +215,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 	}
+	//std::cout << "PnP number: " << query_frame_points.size() << std::endl;
 
 	if ((query_frame_points.size() == 0) || (train_frame_points.size() == 0))
 	{
@@ -211,7 +223,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 	}
 
 	cv::Mat inliers;
-	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_, 
+	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_,
 		cur_rotation_, cur_translation_, false, pnp_iterations_count_, pnp_error_, pnp_min_inliers_count_, inliers);
 
 	cv::Mat rotation_3x3;
@@ -225,7 +237,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 	transform(1, 3) = cur_translation_.at<double>(1, 0);
 	transform(2, 3) = cur_translation_.at<double>(2, 0);
 	p_train_frame.SetTransform(transform);
-	// std::cout << "Inliers number: " << inliers.rows << std::endl;
+	//std::cout << "Inliers number: " << inliers.rows << std::endl;
 
 	return inliers.rows;
 }
