@@ -9,7 +9,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-LoopClosing::LoopClosing(const Parameter & p_parameter) : local_error_sum_(0.0), global_error_sum_(0.0)
+LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_error_sum_(0.0), global_error_sum_(0.0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -27,13 +27,16 @@ LoopClosing::LoopClosing(const Parameter & p_parameter) : local_error_sum_(0.0),
 	temp_D.copyTo(camera_D_);
 
 	vocabulary_dir_ = p_parameter.kVocabularyDir_;
-	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin;
-	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin;
-	match_ratio_ = p_parameter.kMatchRatio_;
+	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin_;
+	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin_;
+	match_ratio_ = p_parameter.kORBMatchRatio_;
 	pnp_iterations_count_ = p_parameter.kPNPIterationsCount_;
 	pnp_error_ = p_parameter.kPNPError_;
 	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
+	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
+
+	map_ = p_map;
 
 	LoadVocabulary();
 	InitializeG2O();
@@ -76,6 +79,8 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		vertex->setFixed(true);
 		optimizer_.addVertex(vertex);
 	}
+
+	SaveG2OFile("tracking.g2o");
 }
 
 void LoopClosing::AddCurFrameToGraph()
@@ -94,7 +99,7 @@ void LoopClosing::AddCurFrameToGraph()
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
 	edge->computeError();
 
-	if (edge->chi2() >= 5.0)
+	if (edge->chi2() >= chi2_threshold_)
 	{
 		delete edge;
 		edge = new g2o::EdgeSE3();
@@ -129,7 +134,7 @@ void LoopClosing::LoopClose()
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
 		edge->computeError();
 
-		if (edge->chi2() <= 5.0)
+		if (edge->chi2() <= 2.0)
 		{
 			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
 			local_error_sum_ += edge->chi2();
@@ -145,38 +150,65 @@ void LoopClosing::LoopClose()
 	std::cout << "Detecting global loop closure..." << std::endl;
 	std::vector<Frame *> loop_frames = GetLoopFrames();
 	int32_t loop_frames_size = loop_frames.size();
-	if (loop_frames_size == 0)
+	if (loop_frames_size != 0)
 	{
-		return;
-	}
-	for (auto loop_frame : loop_frames)
-	{
-		Eigen::Isometry3d transform;
-		if (GetPose(*loop_frame, cur_frame_, transform) < pnp_inliers_threshold_)
+		for (auto loop_frame : loop_frames)
 		{
-			continue;
+			Eigen::Isometry3d transform;
+			if (GetPose(*loop_frame, cur_frame_, transform) < pnp_inliers_threshold_)
+			{
+				continue;
+			}
+
+			g2o::EdgeSE3* edge = new g2o::EdgeSE3();
+			edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+			edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frame->id_));
+			edge->setMeasurement(transform);
+			edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
+			edge->setRobustKernel(new g2o::RobustKernelHuber());
+			edge->computeError();
+
+			if (edge->chi2() <= chi2_threshold_)
+			{
+				std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
+				global_error_sum_ += edge->chi2();
+				std::cout << ", total error: " << global_error_sum_ << std::endl;
+				optimizer_.addEdge(edge);
+			}
+			else
+			{
+				delete edge;
+			}
+		}
+	}
+
+	std::vector<Frame> optimized_key_frames;
+
+	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_))
+	{
+		cout << "Optimizing..." << endl;
+		optimizer_.initializeOptimization();
+		optimizer_.optimize(40);
+		cout << "Optimized!" << endl;
+
+		optimized_key_frames = key_frames_;
+		for (auto key_frame : optimized_key_frames)
+		{
+			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frame.id_));
+			key_frame.SetTransform(vertex->estimate().inverse());
 		}
 
-		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
-		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frame->id_));
-		edge->setMeasurement(transform);
-		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
-		edge->setRobustKernel(new g2o::RobustKernelHuber());
-		edge->computeError();
-
-		if (edge->chi2() <= 5.0)
-		{
-			std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
-			global_error_sum_ += edge->chi2();
-			std::cout << ", total error: " << global_error_sum_ << std::endl;
-			optimizer_.addEdge(edge);
-		}
-		else
-		{
-			delete edge;
-		}
+		global_error_sum_ = 0.0;
+		local_error_sum_ = 0.0;
 	}
+
+	map_->GetKeyFrames(optimized_key_frames);
+}
+
+void LoopClosing::GlobalOptimize()
+{
+	optimizer_.initializeOptimization();
+	optimizer_.optimize(50);
 }
 
 std::vector<Frame *> LoopClosing::GetLoopFrames()

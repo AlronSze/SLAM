@@ -86,7 +86,7 @@ void Frame::ComputePoint3D()
 		if (depth == 0)
 		{
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
-			point_rgb_.push_back(RGB());
+			point_rgb_.push_back(FrameRGB());
 			point_depth_.push_back(depth);
 		}
 		else
@@ -97,7 +97,7 @@ void Frame::ComputePoint3D()
 			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
 			point_3d_.push_back(point_3f);
 
-			struct RGB rgb;
+			FrameRGB rgb;
 			rgb.r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
 			rgb.g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
 			rgb.b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];

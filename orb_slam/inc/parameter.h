@@ -33,12 +33,10 @@ public:
 	int kORBLevels_;
 	int kORBThresholdInit_;
 	int kORBThresholdMin_;
+	float kORBMatchRatio_;
 
 	// dataset directory
 	std::string kDatasetDir_;
-
-	// match ratio
-	float kMatchRatio_;
 
 	// point cloud filter parameters
 	float kFilterLeafSize_;
@@ -54,6 +52,9 @@ public:
 	std::string kVocabularyDir_;
 
 	// dbow2 loop parameters
-	double kDBoW2ScoreMin;
-	int kDBoW2IntervalMin;
+	double kDBoW2ScoreMin_;
+	int kDBoW2IntervalMin_;
+
+	// g2o parameters
+	double kG2OChi2Threshold_;
 };

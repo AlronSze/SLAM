@@ -7,13 +7,16 @@
 
 #include "parameter.h"
 #include "frame.h"
+#include "map.h"
 
 class LoopClosing {
 public:
-	LoopClosing(const Parameter & p_parameter);
+	LoopClosing(const Parameter & p_parameter, Map * p_map);
 
 	void GetKeyFrame(const Frame & p_frame);
+	void GlobalOptimize();
 	inline void SaveG2OFile(const char * p_g2o_file_name);
+	inline void PopKeyFrame();
 
 private:
 	void SetBowVector(Frame & p_frame);
@@ -25,10 +28,8 @@ private:
 	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame);
 	int32_t GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform);
 
-public:
-	std::vector<Frame> key_frames_;
-
 private:
+	std::vector<Frame> key_frames_;
 	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> vocabulary_;
 	Frame cur_frame_;
 	g2o::SparseOptimizer optimizer_;
@@ -44,9 +45,16 @@ private:
 	int pnp_inliers_threshold_;
 	double local_error_sum_;
 	double global_error_sum_;
+	double chi2_threshold_;
+	Map * map_;
 };
 
 inline void LoopClosing::SaveG2OFile(const char * p_g2o_file_name)
 {
 	optimizer_.save(p_g2o_file_name);
+}
+
+inline void LoopClosing::PopKeyFrame()
+{
+	key_frames_.pop_back();
 }

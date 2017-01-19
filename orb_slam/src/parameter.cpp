@@ -28,12 +28,10 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage["orb"]["levels"] >> kORBLevels_;
 	file_storage["orb"]["threshold_init"] >> kORBThresholdInit_;
 	file_storage["orb"]["threshold_min"] >> kORBThresholdMin_;
+	file_storage["orb"]["match_ratio"] >> kORBMatchRatio_;
 
 	// dataset directory
 	file_storage["dataset_dir"] >> kDatasetDir_;
-
-	// match ratio
-	file_storage["match_ratio"] >> kMatchRatio_;
 
 	// point cloud filter parameters
 	file_storage["filter"]["leaf_size"] >> kFilterLeafSize_;
@@ -49,8 +47,11 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage["vocabulary_dir"] >> kVocabularyDir_;
 
 	// dbow2 loop parameters
-	file_storage["dbow2"]["score_min"] >> kDBoW2ScoreMin;
-	file_storage["dbow2"]["interval_min"] >> kDBoW2IntervalMin;
+	file_storage["dbow2"]["score_min"] >> kDBoW2ScoreMin_;
+	file_storage["dbow2"]["interval_min"] >> kDBoW2IntervalMin_;
+
+	// g2o parameters
+	file_storage["g2o"]["chi2_threshold"] >> kG2OChi2Threshold_;
 
 	file_storage.release();
 

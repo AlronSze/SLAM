@@ -45,6 +45,5 @@ private:
 	std::vector<Frame> key_frames_;
 	LoopClosing *loop_closing_;
 	int last_key_frame_dist_;
-	Eigen::Isometry3d speed_;
 	int relocalization_count_;
 };

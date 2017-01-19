@@ -10,6 +10,12 @@
 
 #include "parameter.h"
 
+struct FrameRGB {
+	uint8_t r_;
+	uint8_t g_;
+	uint8_t b_;
+};
+
 class Frame {
 public:
 	Frame();
@@ -28,12 +34,6 @@ public:
 	inline Eigen::Isometry3d GetTransform() const;
 
 public:
-	struct RGB {
-		uint8_t r_;
-		uint8_t g_;
-		uint8_t b_;
-	};
-
 	int32_t id_;
 	int32_t key_point_number_;
 	cv::Mat rgb_image_;
@@ -43,7 +43,7 @@ public:
 	cv::Mat descriptors_;
 	std::vector<cv::KeyPoint> key_points_;
 	std::vector<cv::Point3f> point_3d_;
-	std::vector<RGB> point_rgb_;
+	std::vector<FrameRGB> point_rgb_;
 	std::vector<uint16_t> point_depth_;
 
 private:

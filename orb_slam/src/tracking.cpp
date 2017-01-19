@@ -6,7 +6,7 @@
 
 Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
 	tracking_state_(INITIALIZE), cur_inliers_(0), loop_closing_(p_loop_closing), last_key_frame_dist_(0), 
-	speed_(Eigen::Isometry3d::Identity()), relocalization_count_(0)
+	relocalization_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -24,7 +24,7 @@ Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) 
 	temp_D.copyTo(camera_D_);
 
 	camera_scale_ = p_parameter.kCameraParameters_.scale_;
-	match_ratio_ = p_parameter.kMatchRatio_;
+	match_ratio_ = p_parameter.kORBMatchRatio_;
 	pnp_iterations_count_ = p_parameter.kPNPIterationsCount_;
 	pnp_error_ = p_parameter.kPNPError_;
 	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
@@ -40,7 +40,7 @@ void Tracking::GetFrame(Frame * p_frame)
 void Tracking::Track()
 {
 	bool is_tracked = true;
-	bool is_track_with_ref = false;
+	//bool is_track_with_ref = false;
 	bool is_relocalized = false;
 
 	if (tracking_state_ == INITIALIZE)
@@ -81,7 +81,6 @@ void Tracking::Track()
 			key_frames_.push_back(Frame(*cur_frame_));
 			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
 			last_key_frame_dist_ = 0;
-			loop_closing_->SaveG2OFile("tracking.g2o");
 		}
 	}
 
@@ -151,7 +150,7 @@ bool Tracking::Relocalization()
 		for (; delete_frames_count > 0; delete_frames_count--)
 		{
 			key_frames_.pop_back();
-			loop_closing_->key_frames_.pop_back();
+			loop_closing_->PopKeyFrame();
 		}
 
 		relocalization_count_ = 0;

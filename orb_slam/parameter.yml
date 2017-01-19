@@ -36,12 +36,10 @@ orb:
   levels : 8
   threshold_init : 20
   threshold_min : 7
+  match_ratio : 0.8
 
 # dataset directory
 dataset_dir : "../../Dataset/freiburg2_desk/"
-
-# match ratio
-match_ratio : 0.9
 
 # point cloud filter parameters
 filter:
@@ -62,3 +60,7 @@ vocabulary_dir : "ORBvoc.txt"
 dbow2:
   score_min : 0.015
   interval_min : 60
+
+# g2o parameters
+g2o:
+  chi2_threshold : 5.0
