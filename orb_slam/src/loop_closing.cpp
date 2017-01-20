@@ -3,7 +3,6 @@
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/core/robust_kernel_impl.h>
-//#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
 #include <g2o/solvers/eigen/linear_solver_eigen.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include <opencv2/core/eigen.hpp>
@@ -92,8 +91,8 @@ void LoopClosing::AddCurFrameToGraph()
 	optimizer_.addVertex(vertex);
 
 	g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-	edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
-	edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+	edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+	edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
 	edge->setMeasurement(cur_frame_.GetTransform());
 	edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
@@ -103,8 +102,8 @@ void LoopClosing::AddCurFrameToGraph()
 	{
 		delete edge;
 		edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
-		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
 		edge->setMeasurement(key_frames_.back().GetTransform());
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
@@ -121,14 +120,14 @@ void LoopClosing::LoopClose()
 	for (int32_t i = frames_number - 2; (i >= 0) && (i > (frames_number - 2 - 5)); i--)
 	{
 		Eigen::Isometry3d transform;
-		if (GetPose(key_frames_[i], cur_frame_, transform) < pnp_inliers_threshold_)
+		if (GetPose(cur_frame_, key_frames_[i], transform) < pnp_inliers_threshold_)
 		{
 			continue;
 		}
 
 		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
-		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
+		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
 		edge->setMeasurement(transform);
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
@@ -155,14 +154,14 @@ void LoopClosing::LoopClose()
 		for (auto loop_frame : loop_frames)
 		{
 			Eigen::Isometry3d transform;
-			if (GetPose(*loop_frame, cur_frame_, transform) < pnp_inliers_threshold_)
+			if (GetPose(cur_frame_, *loop_frame, transform) < pnp_inliers_threshold_)
 			{
 				continue;
 			}
 
 			g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-			edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
-			edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frame->id_));
+			edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frame->id_));
+			edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
 			edge->setMeasurement(transform);
 			edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 			edge->setRobustKernel(new g2o::RobustKernelHuber());
@@ -188,14 +187,14 @@ void LoopClosing::LoopClose()
 	{
 		cout << "Optimizing..." << endl;
 		optimizer_.initializeOptimization();
-		optimizer_.optimize(40);
+		optimizer_.optimize(20);
 		cout << "Optimized!" << endl;
 
 		optimized_key_frames = key_frames_;
 		for (auto key_frame : optimized_key_frames)
 		{
 			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frame.id_));
-			key_frame.SetTransform(vertex->estimate().inverse());
+			key_frame.SetTransform(vertex->estimate());
 		}
 
 		global_error_sum_ = 0.0;
@@ -203,12 +202,6 @@ void LoopClosing::LoopClose()
 	}
 
 	map_->GetKeyFrames(optimized_key_frames);
-}
-
-void LoopClosing::GlobalOptimize()
-{
-	optimizer_.initializeOptimization();
-	optimizer_.optimize(50);
 }
 
 std::vector<Frame *> LoopClosing::GetLoopFrames()

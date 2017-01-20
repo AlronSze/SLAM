@@ -4,7 +4,7 @@
 
 Map::Map()
 {
-	viewer_ = new pcl::visualization::CloudViewer("viewer");
+	// viewer_ = new pcl::visualization::CloudViewer("viewer");
 }
 
 void Map::GetKeyFrames(const std::vector<Frame> & p_frame)

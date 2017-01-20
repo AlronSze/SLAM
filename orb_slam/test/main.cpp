@@ -44,40 +44,8 @@ int main()
 		std::cout << std::endl;
 	}
 
-	loop_closing.SaveG2OFile("result_before.g2o");
-	loop_closing.GlobalOptimize();
-	loop_closing.SaveG2OFile("result_after.g2o");
-
-	getchar();
+	std::cout << "Press any key to shut down SLAM." << std::endl;
 	getchar();
 
     return 0;
 }
-
-// ==================== Test for G2O Method ====================
-//#include <g2o/core/block_solver.h>
-//#include <g2o/core/optimization_algorithm_levenberg.h>
-//#include <g2o/core/robust_kernel_impl.h>
-//#include <g2o/solvers/eigen/linear_solver_eigen.h>
-//#include <g2o/types/slam3d/types_slam3d.h>
-//#include <opencv2/core/eigen.hpp>
-//#include <opencv2/legacy/legacy.hpp>
-//
-//int main()
-//{
-//	g2o::SparseOptimizer optimizer;
-//	g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>* linear_solver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
-//	linear_solver->setBlockOrdering(false);
-//	g2o::BlockSolver_6_3 *block_solver = new g2o::BlockSolver_6_3(linear_solver);
-//	g2o::OptimizationAlgorithmLevenberg* algorithm = new g2o::OptimizationAlgorithmLevenberg(block_solver);
-//	optimizer.setAlgorithm(algorithm);
-//	optimizer.setVerbose(false);
-//
-//	optimizer.load("test.g2o");
-//	optimizer.initializeOptimization();
-//	optimizer.optimize(50);
-//	optimizer.save("test_after.g2o");
-//
-//	return 0;
-//}
-// =============================================================

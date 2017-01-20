@@ -14,7 +14,6 @@ public:
 	LoopClosing(const Parameter & p_parameter, Map * p_map);
 
 	void GetKeyFrame(const Frame & p_frame);
-	void GlobalOptimize();
 	inline void SaveG2OFile(const char * p_g2o_file_name);
 	inline void PopKeyFrame();
 
