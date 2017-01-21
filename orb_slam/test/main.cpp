@@ -6,6 +6,7 @@
 #include "../inc/loop_closing.h"
 
 #include <iostream>
+#include <thread>
 #include <opencv2/highgui/highgui.hpp>
 
 // #define DEBUG_DRAW
@@ -17,9 +18,10 @@ int main()
 {
 	std::cout << std::endl << "Initializing SLAM..." << std::endl;
 	Parameter parameter("parameter.yml");
-	Map map;
+	Map * map = new Map();
+	std::thread * map_thread = new std::thread(&Map::Run, map);
 	// LocalMapping local_mapping;
-	LoopClosing loop_closing(parameter, &map);
+	LoopClosing loop_closing(parameter, map);
 	Tracking tracking(parameter, &loop_closing);
 	std::cout << std::endl << "SLAM initialized! Start to track." << std::endl << std::endl;
 
@@ -37,7 +39,7 @@ int main()
 #ifdef DEBUG_DRAW
 		draw_image.toDrawFrame(*frame, 1);
 #endif // DEBUG_DRAW
-		frame->ReleaseImage();
+		// frame->ReleaseImage();
 		
 		tracking.GetFrame(frame);
 		delete frame;

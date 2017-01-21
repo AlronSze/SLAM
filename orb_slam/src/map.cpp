@@ -1,16 +1,47 @@
 #include "../inc/map.h"
 
 //#include <pcl/filters/voxel_grid.h>
+#include <windows.h>
 
-Map::Map()
+Map::Map() : can_draw_(true)
 {
-	// viewer_ = new pcl::visualization::CloudViewer("viewer");
 }
 
 void Map::GetKeyFrames(const std::vector<Frame> & p_frame)
 {
 	key_frames_ = p_frame;
-	ShowMap();
+	if (key_frames_.size() != 0)
+	{
+		can_draw_ = false;
+	}
+}
+
+void Map::Run()
+{
+	pcl::visualization::CloudViewer viewer("viewer");
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_map(new pcl::PointCloud<pcl::PointXYZRGBA>);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+	while (1)
+	{
+		if (!can_draw_)
+		{
+			for (auto key_frame : key_frames_)
+			{
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud = GetPointCloudForWhole(key_frame);
+				*global_map += *temp;
+			}
+			viewer.showCloud(global_map);
+
+			global_map->clear();
+			temp->clear();
+			key_frames_.clear();
+
+			can_draw_ = true;
+		}
+
+		Sleep(3000);
+	}
 }
 
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame)
@@ -48,15 +79,43 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame
 	return result;
 }
 
-void Map::ShowMap()
+pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame & p_frame)
 {
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_map(new pcl::PointCloud<pcl::PointXYZRGBA>);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr result(new pcl::PointCloud<pcl::PointXYZRGBA>());
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>());
 
-	for (auto key_frame : key_frames_)
+	int32_t points_number = (int32_t)p_frame.point_3d_.size();
+
+	for (int32_t y = 0; y < p_frame.depth_image_.rows; y += 3)
 	{
-		pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud = GetPointCloud(key_frame);
-		*global_map += *cloud;
+		for (int32_t x = 0; x < p_frame.depth_image_.cols; x += 3)
+		{
+			uint16_t depth = p_frame.depth_image_.ptr<uint16_t>(y)[x];
+			if ((depth == 0) || (depth > 4 * 5000))
+				continue;
+
+			pcl::PointXYZRGBA point_xyzrgb;
+
+			cv::Point3f point_3f;
+			point_3f.z = (float)depth / 5000.0f;
+			point_3f.x = ((float)x - 325.1f) * point_3f.z / 520.9f;
+			point_3f.y = ((float)y - 249.7f) * point_3f.z / 521.0f;
+
+			point_xyzrgb.b = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3];
+			point_xyzrgb.g = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
+			point_xyzrgb.r = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3 + 2];
+
+			point_xyzrgb.x = point_3f.x;
+			point_xyzrgb.y = point_3f.y;
+			point_xyzrgb.z = point_3f.z;
+
+			result->points.push_back(point_xyzrgb);
+		}
 	}
 
-	viewer_->showCloud(global_map);
+	Eigen::Isometry3d T = p_frame.GetTransform();
+	pcl::transformPointCloud(*temp, *result, T.matrix());
+	result->is_dense = false;
+
+	return result;
 }

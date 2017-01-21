@@ -98,7 +98,7 @@ void LoopClosing::AddCurFrameToGraph()
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
 	edge->computeError();
 
-	if (edge->chi2() >= chi2_threshold_)
+	if (edge->chi2() >= 1.0)
 	{
 		delete edge;
 		edge = new g2o::EdgeSE3();
@@ -117,7 +117,7 @@ void LoopClosing::LoopClose()
 	int32_t frames_number = (int32_t)key_frames_.size();
 
 	std::cout << "Detecting local loop closure..." << std::endl;
-	for (int32_t i = frames_number - 2; (i >= 0) && (i > (frames_number - 2 - 5)); i--)
+	for (int32_t i = frames_number - 2; (i >= 0) && (i > (frames_number - 2 - 10)); i--)
 	{
 		Eigen::Isometry3d transform;
 		if (GetPose(cur_frame_, key_frames_[i], transform) < pnp_inliers_threshold_)
@@ -133,7 +133,7 @@ void LoopClosing::LoopClose()
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
 		edge->computeError();
 
-		if (edge->chi2() <= 2.0)
+		if (edge->chi2() <= 1.0)
 		{
 			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
 			local_error_sum_ += edge->chi2();
@@ -181,8 +181,8 @@ void LoopClosing::LoopClose()
 		}
 	}
 
+	bool is_optimized = false;
 	std::vector<Frame> optimized_key_frames;
-
 	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_))
 	{
 		cout << "Optimizing..." << endl;
@@ -199,9 +199,20 @@ void LoopClosing::LoopClose()
 
 		global_error_sum_ = 0.0;
 		local_error_sum_ = 0.0;
+		is_optimized = true;
 	}
 
-	map_->GetKeyFrames(optimized_key_frames);
+	if (map_->can_draw_)
+	{
+		if (is_optimized)
+		{
+			map_->GetKeyFrames(optimized_key_frames);
+		}
+		else
+		{
+			//map_->GetKeyFrames(key_frames_);
+		}
+	}
 }
 
 std::vector<Frame *> LoopClosing::GetLoopFrames()

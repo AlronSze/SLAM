@@ -10,12 +10,15 @@ class Map {
 public:
 	Map();
 	void GetKeyFrames(const std::vector<Frame> & p_frame);
+	void Run();
 
 private:
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloud(const Frame & p_frame);
-	void ShowMap();
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudForWhole(const Frame & p_frame);
+
+public:
+	bool can_draw_;
 
 private:
 	std::vector<Frame> key_frames_;
-	pcl::visualization::CloudViewer * viewer_;
 };
