@@ -62,7 +62,7 @@ filter:
 # pnp parameters
 pnp:
   iterations_count : 1000
-  error : 2.448 # 5.991
+  error : 5.991 # 5.991
   min_inliers_count : 10
   inliers_threshold : 60
 
@@ -76,4 +76,4 @@ dbow2:
 
 # g2o parameters
 g2o:
-  chi2_threshold : 5.0
+  chi2_threshold : 2.0

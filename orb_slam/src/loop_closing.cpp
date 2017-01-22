@@ -99,7 +99,7 @@ void LoopClosing::AddCurFrameToGraph()
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
 	edge->computeError();
 
-	if (edge->chi2() >= 1.0)
+	if (edge->chi2() >= chi2_threshold_)
 	{
 		delete edge;
 		edge = new g2o::EdgeSE3();
@@ -134,7 +134,7 @@ void LoopClosing::LoopClose()
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
 		edge->computeError();
 
-		if (edge->chi2() <= 1.0)
+		if (edge->chi2() <= chi2_threshold_)
 		{
 			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
 			local_error_sum_ += edge->chi2();

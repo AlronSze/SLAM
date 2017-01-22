@@ -32,7 +32,7 @@ void Map::Run()
 		{
 			for (auto key_frame : key_frames_)
 			{
-				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloud(key_frame);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloudForWhole(key_frame);
 				*global_map += *temp;
 			}
 			viewer.showCloud(global_map);
@@ -89,9 +89,9 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame &
 
 	int32_t points_number = (int32_t)p_frame.point_3d_.size();
 
-	for (int32_t y = 0; y < p_frame.depth_image_.rows; y += 3)
+	for (int32_t y = 0; y < p_frame.depth_image_.rows; y += 5)
 	{
-		for (int32_t x = 0; x < p_frame.depth_image_.cols; x += 3)
+		for (int32_t x = 0; x < p_frame.depth_image_.cols; x += 5)
 		{
 			uint16_t depth = p_frame.depth_image_.ptr<uint16_t>(y)[x];
 			if ((depth == 0) || (depth > 4 * 5000))

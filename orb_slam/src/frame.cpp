@@ -15,7 +15,8 @@ Frame::Frame(const Frame & p_frame) :
 	orb_features_max_(p_frame.orb_features_max_), orb_scale_(p_frame.orb_scale_), orb_levels_(p_frame.orb_levels_),
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
 	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
-	camera_scale_(p_frame.camera_scale_), point_rgb_(p_frame.point_rgb_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector)
+	camera_scale_(p_frame.camera_scale_), point_rgb_(p_frame.point_rgb_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector),
+	depth_max_(p_frame.depth_max_)
 {
 }
 
@@ -33,6 +34,7 @@ Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(
 	camera_cx_ = p_parameter.kCameraParameters_.cx_;
 	camera_cy_ = p_parameter.kCameraParameters_.cy_;
 	camera_scale_ = p_parameter.kCameraParameters_.scale_;
+	depth_max_ = p_parameter.kFilterDepthMax_;
 
 	GetImage(p_index);
 	GetKeyPointAndDescriptor();
@@ -83,11 +85,11 @@ void Frame::ComputePoint3D()
 		int32_t point_y = (int32_t)key_points_[i].pt.y;
 		uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
-		if (depth == 0)
+		if( (depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
 		{
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
 			point_rgb_.push_back(FrameRGB());
-			point_depth_.push_back(depth);
+			point_depth_.push_back(0);
 		}
 		else
 		{

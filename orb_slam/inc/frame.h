@@ -59,6 +59,7 @@ private:
 	float camera_cx_;
 	float camera_cy_;
 	float camera_scale_;
+	float depth_max_;
 
 	Eigen::Isometry3d transform_;
 };

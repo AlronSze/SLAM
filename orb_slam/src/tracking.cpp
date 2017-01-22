@@ -75,7 +75,7 @@ void Tracking::Track()
 		double norm = fabs(cv::norm(cur_translation_)) + fabs(std::min(cv::norm(cur_rotation_), 2.0 * M_PI - cv::norm(cur_rotation_)));
 		// std::cout << norm << std::endl;
 		//if (((norm < 0.5) && (norm > 0.1)) || (is_track_with_ref && ((cur_frame_->id_ - key_frames_.back().id_) > 10)) || is_relocalized || (last_key_frame_dist_ >= 30))
-		if (((norm < 0.2) && (norm > 0.1)) || is_relocalized || (last_key_frame_dist_ >= 30))
+		if (((norm < 0.2) && (norm > 0.1)) || is_relocalized)
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
 			key_frames_.push_back(Frame(*cur_frame_));
@@ -162,6 +162,7 @@ bool Tracking::Relocalization()
 		std::cout << "Tracking Relocalization by Last Key Frame." << std::endl;
 		relocalization_count_ = 0;
 		cur_frame_->SetTransform(key_frames_.back().GetTransform());
+		tracking_state_ = OK;
 		return true;
 	}
 
@@ -214,7 +215,6 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 	}
-	//std::cout << "PnP number: " << query_frame_points.size() << std::endl;
 
 	if ((query_frame_points.size() == 0) || (train_frame_points.size() == 0))
 	{

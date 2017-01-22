@@ -74,8 +74,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>F:\DevTools\PCL_1_8_0\3rdParty\VTK\include\vtk-7.0;F:\DevTools\PCL_1_8_0\include\pcl-1.8;F:\DevTools\PCL_1_8_0\3rdParty\Boost\include\boost-1_61;F:\DevTools\DLib-3a4a207\include;F:\DevTools\PCL_1_8_0\3rdParty\Eigen\eigen3;F:\DevTools\g2o;F:\DevTools\OpenCV\opencv_2_4_13_2\build\include;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\DevTools\PCL_1_8_0\3rdParty\Boost\lib;F:\DevTools\PCL_1_8_0\lib;F:\DevTools\DLib-3a4a207\build\Debug;F:\DevTools\g2o\bin\Debug;F:\DevTools\OpenCV\opencv_2_4_13_2\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\PCL1.8.0\3rdParty\VTK\include\vtk-7.0;C:\PCL1.8.0\include\pcl-1.8;C:\PCL1.8.0\3rdParty\Boost\include\boost-1_61;F:\Lib\DLib-3a4a207\include;C:\PCL1.8.0\3rdParty\Eigen\eigen3;F:\Lib\g2o-4bcabdf;F:\Lib\OpenCV-2.4.13.2\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\PCL1.8.0\3rdParty\Boost\lib;C:\PCL1.8.0\lib;F:\Lib\DLib-3a4a207\build\Debug;F:\Lib\g2o-4bcabdf\bin\Debug;F:\Lib\OpenCV-2.4.13.2\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -105,6 +105,8 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
