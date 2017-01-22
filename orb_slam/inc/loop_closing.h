@@ -46,6 +46,7 @@ private:
 	double global_error_sum_;
 	double chi2_threshold_;
 	Map * map_;
+	int32_t frames_count_;
 };
 
 inline void LoopClosing::SaveG2OFile(const char * p_g2o_file_name)

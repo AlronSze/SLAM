@@ -18,7 +18,7 @@ int main()
 {
 	std::cout << std::endl << "Initializing SLAM..." << std::endl;
 	Parameter parameter("parameter.yml");
-	Map * map = new Map();
+	Map * map = new Map(parameter);
 	std::thread * map_thread = new std::thread(&Map::Run, map);
 	// LocalMapping local_mapping;
 	LoopClosing loop_closing(parameter, map);
@@ -39,7 +39,7 @@ int main()
 #ifdef DEBUG_DRAW
 		draw_image.toDrawFrame(*frame, 1);
 #endif // DEBUG_DRAW
-		// frame->ReleaseImage();
+		frame->ReleaseImage();
 		
 		tracking.GetFrame(frame);
 		delete frame;

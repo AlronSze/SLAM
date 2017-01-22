@@ -8,7 +8,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_error_sum_(0.0), global_error_sum_(0.0)
+LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -62,6 +62,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 {
 	cur_frame_ = Frame(p_frame);
 	SetBowVector(cur_frame_);
+	frames_count_++;
 
 	if (key_frames_.size() != 0)
 	{
@@ -183,35 +184,30 @@ void LoopClosing::LoopClose()
 
 	bool is_optimized = false;
 	std::vector<Frame> optimized_key_frames;
-	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_))
+	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_) || (frames_count_ == 10))
 	{
 		cout << "Optimizing..." << endl;
 		optimizer_.initializeOptimization();
 		optimizer_.optimize(20);
 		cout << "Optimized!" << endl;
 
-		optimized_key_frames = key_frames_;
-		for (auto key_frame : optimized_key_frames)
+		for (auto key_frame : key_frames_)
 		{
 			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frame.id_));
 			key_frame.SetTransform(vertex->estimate());
+			optimized_key_frames.push_back(key_frame);
 		}
 
 		global_error_sum_ = 0.0;
 		local_error_sum_ = 0.0;
+		frames_count_ = 0;
 		is_optimized = true;
 	}
 
-	if (map_->can_draw_)
+	if (is_optimized)
 	{
-		if (is_optimized)
-		{
-			map_->GetKeyFrames(optimized_key_frames);
-		}
-		else
-		{
-			//map_->GetKeyFrames(key_frames_);
-		}
+		while (!map_->can_draw_);
+		map_->GetKeyFrames(optimized_key_frames);
 	}
 }
 

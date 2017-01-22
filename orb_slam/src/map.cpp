@@ -3,8 +3,13 @@
 //#include <pcl/filters/voxel_grid.h>
 #include <windows.h>
 
-Map::Map() : can_draw_(true)
+Map::Map(const Parameter & p_parameter) : can_draw_(true)
 {
+	camera_fx_ = p_parameter.kCameraParameters_.fx_;
+	camera_fy_ = p_parameter.kCameraParameters_.fy_;
+	camera_cx_ = p_parameter.kCameraParameters_.cx_;
+	camera_cy_ = p_parameter.kCameraParameters_.cy_;
+	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 }
 
 void Map::GetKeyFrames(const std::vector<Frame> & p_frame)
@@ -20,7 +25,6 @@ void Map::Run()
 {
 	pcl::visualization::CloudViewer viewer("viewer");
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_map(new pcl::PointCloud<pcl::PointXYZRGBA>);
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
 	while (1)
 	{
@@ -28,13 +32,12 @@ void Map::Run()
 		{
 			for (auto key_frame : key_frames_)
 			{
-				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud = GetPointCloudForWhole(key_frame);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloud(key_frame);
 				*global_map += *temp;
 			}
 			viewer.showCloud(global_map);
 
 			global_map->clear();
-			temp->clear();
 			key_frames_.clear();
 
 			can_draw_ = true;
@@ -97,9 +100,9 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame &
 			pcl::PointXYZRGBA point_xyzrgb;
 
 			cv::Point3f point_3f;
-			point_3f.z = (float)depth / 5000.0f;
-			point_3f.x = ((float)x - 325.1f) * point_3f.z / 520.9f;
-			point_3f.y = ((float)y - 249.7f) * point_3f.z / 521.0f;
+			point_3f.z = (float)depth / camera_scale_;
+			point_3f.x = ((float)x - camera_cx_) * point_3f.z / camera_fx_;
+			point_3f.y = ((float)y - camera_cy_) * point_3f.z / camera_fy_;
 
 			point_xyzrgb.b = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3];
 			point_xyzrgb.g = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
@@ -109,7 +112,7 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame &
 			point_xyzrgb.y = point_3f.y;
 			point_xyzrgb.z = point_3f.z;
 
-			result->points.push_back(point_xyzrgb);
+			temp->points.push_back(point_xyzrgb);
 		}
 	}
 

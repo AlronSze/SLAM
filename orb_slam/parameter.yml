@@ -29,6 +29,19 @@ camera:
   d3 : -0.0001
   d4 : 0.9172
 
+# camera parameters cafe
+#camera:
+#  fx : 518.0
+#  fy : 519.0
+#  cx : 325.5
+#  cy : 253.5
+#  scale : 1000.0
+#  d0 : 0.0
+#  d1 : 0.0
+#  d2 : 0.0
+#  d3 : 0.0
+#  d4 : 0.0
+
 # orb parameters
 orb:
   features_max : 1000
@@ -49,9 +62,9 @@ filter:
 # pnp parameters
 pnp:
   iterations_count : 1000
-  error : 5.991
+  error : 2.448 # 5.991
   min_inliers_count : 10
-  inliers_threshold : 100
+  inliers_threshold : 60
 
 # vocabulary directory
 vocabulary_dir : "ORBvoc.txt"
