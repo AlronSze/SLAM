@@ -43,9 +43,9 @@ public:
 	float kFilterDepthMax_;
 
 	// pnp parameters
-	int kPNPIterationsCount_;
-	float kPNPError_;
-	int kPNPMinInliersCount_;
+	//int kPNPIterationsCount_;
+	//float kPNPError_;
+	//int kPNPMinInliersCount_;
 	int KPNPInliersThreshold_;
 
 	// vocabulary directory

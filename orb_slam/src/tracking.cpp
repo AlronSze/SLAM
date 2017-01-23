@@ -4,9 +4,11 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
+#include "../inc/optimizer.h"
+
 Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
-	tracking_state_(INITIALIZE), cur_inliers_(0), loop_closing_(p_loop_closing), last_key_frame_dist_(0), 
-	relocalization_count_(0)
+	tracking_state_(INITIALIZE), loop_closing_(p_loop_closing), last_key_frame_dist_(0), 
+	last_transform_(Eigen::Isometry3d::Identity())
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -23,11 +25,7 @@ Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) 
 	temp_D.at<float>(4) = p_parameter.kCameraParameters_.d4_;
 	temp_D.copyTo(camera_D_);
 
-	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 	match_ratio_ = p_parameter.kORBMatchRatio_;
-	pnp_iterations_count_ = p_parameter.kPNPIterationsCount_;
-	pnp_error_ = p_parameter.kPNPError_;
-	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 }
 
@@ -40,7 +38,6 @@ void Tracking::GetFrame(Frame * p_frame)
 void Tracking::Track()
 {
 	bool is_tracked = true;
-	//bool is_track_with_ref = false;
 	bool is_relocalized = false;
 
 	if (tracking_state_ == INITIALIZE)
@@ -60,7 +57,6 @@ void Tracking::Track()
 		//if (!is_tracked)
 		//{
 			is_tracked = TrackWithRefFrame();
-			//is_track_with_ref = is_tracked;
 		//}
 	}
 	else
@@ -71,11 +67,9 @@ void Tracking::Track()
 
 	if (is_tracked)
 	{
-		// TO DO: SHOULD FIX CONDITIONS
 		double norm = fabs(cv::norm(cur_translation_)) + fabs(std::min(cv::norm(cur_rotation_), 2.0 * M_PI - cv::norm(cur_rotation_)));
-		// std::cout << norm << std::endl;
-		//if (((norm < 0.5) && (norm > 0.1)) || (is_track_with_ref && ((cur_frame_->id_ - key_frames_.back().id_) > 10)) || is_relocalized || (last_key_frame_dist_ >= 30))
-		if (((norm < 0.2) && (norm > 0.1)) || is_relocalized)
+		//std::cout << "Frame norm: " << norm << std::endl;
+		if (((norm < 1.9) && (norm > 1.78)) || is_relocalized)
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
 			key_frames_.push_back(Frame(*cur_frame_));
@@ -105,8 +99,7 @@ bool Tracking::Initialization()
 
 bool Tracking::TrackWithMotion()
 {
-	cur_inliers_ = OptimizePose(last_frame_, *cur_frame_);
-	if (cur_inliers_ < pnp_inliers_threshold_)
+	if (OptimizePose(last_frame_, *cur_frame_) < pnp_inliers_threshold_)
 	{
 		return false;
 	}
@@ -117,8 +110,7 @@ bool Tracking::TrackWithMotion()
 
 bool Tracking::TrackWithRefFrame()
 {
-	cur_inliers_ = OptimizePose(key_frames_.back(), *cur_frame_);
-	if (cur_inliers_ < pnp_inliers_threshold_)
+	if (OptimizePose(key_frames_.back(), *cur_frame_) < pnp_inliers_threshold_)
 	{
 		std::cout << "Tracking Lost!" << std::endl;
 		tracking_state_ = LOST;
@@ -137,8 +129,7 @@ bool Tracking::Relocalization()
 	int32_t delete_frames_count = 0;
 	for (int32_t i = key_frame_size - 1; (i >= 0) && (i >= key_frame_size - 1 - 10); i--)
 	{
-		cur_inliers_ = OptimizePose(key_frames_[i], *cur_frame_);
-		if (cur_inliers_ < pnp_inliers_threshold_)
+		if (OptimizePose(key_frames_[i], *cur_frame_) < 10)
 		{
 			delete_frames_count++;
 			continue;
@@ -153,16 +144,6 @@ bool Tracking::Relocalization()
 			loop_closing_->PopKeyFrame();
 		}
 
-		relocalization_count_ = 0;
-		return true;
-	}
-
-	if (++relocalization_count_ >= 4)
-	{
-		std::cout << "Tracking Relocalization by Last Key Frame." << std::endl;
-		relocalization_count_ = 0;
-		cur_frame_->SetTransform(key_frames_.back().GetTransform());
-		tracking_state_ = OK;
 		return true;
 	}
 
@@ -221,22 +202,15 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 		return 0;
 	}
 
-	cv::Mat inliers;
-	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_,
-		cur_rotation_, cur_translation_, false, pnp_iterations_count_, pnp_error_, pnp_min_inliers_count_, inliers);
+	std::vector<int32_t> inliers_index;
+	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, last_transform_);
+	p_train_frame.SetTransform(last_transform_);
 
-	cv::Mat rotation_3x3;
-	Rodrigues(cur_rotation_, rotation_3x3);
-	Eigen::Matrix3d rotation_eigen;
-	cv::cv2eigen(rotation_3x3, rotation_eigen);
-	Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-	Eigen::AngleAxisd angle(rotation_eigen);
-	transform = angle;
-	transform(0, 3) = cur_translation_.at<double>(0, 0);
-	transform(1, 3) = cur_translation_.at<double>(1, 0);
-	transform(2, 3) = cur_translation_.at<double>(2, 0);
-	p_train_frame.SetTransform(transform);
-	//std::cout << "Inliers number: " << inliers.rows << std::endl;
+	Eigen::Matrix3d rotation = last_transform_.rotation();
+	Eigen::Vector3d translation(last_transform_(0, 3), last_transform_(1, 3), last_transform_(2, 3));
+	cv::eigen2cv(rotation, cur_rotation_);
+	cv::eigen2cv(translation, cur_translation_);
+	//std::cout << "Inliers Number: " << inliers_index.size() << std::endl;
 
-	return inliers.rows;
+	 return inliers_index.size();
 }

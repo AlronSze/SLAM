@@ -69,6 +69,9 @@
     <ClCompile Include="3rd_part\dbow2\ScoringObject.cpp">
       <Filter>3rd_part\dbow2</Filter>
     </ClCompile>
+    <ClCompile Include="src\optimizer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
       <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\optimizer.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

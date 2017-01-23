@@ -8,6 +8,8 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
+#include "../inc/optimizer.h"
+
 LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
@@ -29,9 +31,6 @@ LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_err
 	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin_;
 	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin_;
 	match_ratio_ = p_parameter.kORBMatchRatio_;
-	pnp_iterations_count_ = p_parameter.kPNPIterationsCount_;
-	pnp_error_ = p_parameter.kPNPError_;
-	pnp_min_inliers_count_ = p_parameter.kPNPMinInliersCount_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
 
@@ -97,19 +96,6 @@ void LoopClosing::AddCurFrameToGraph()
 	edge->setMeasurement(cur_frame_.GetTransform());
 	edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 	edge->setRobustKernel(new g2o::RobustKernelHuber());
-	edge->computeError();
-
-	if (edge->chi2() >= chi2_threshold_)
-	{
-		delete edge;
-		edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
-		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_.back().id_));
-		edge->setMeasurement(key_frames_.back().GetTransform());
-		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
-		edge->setRobustKernel(new g2o::RobustKernelHuber());
-	}
-
 	optimizer_.addEdge(edge);
 }
 
@@ -120,8 +106,8 @@ void LoopClosing::LoopClose()
 	std::cout << "Detecting local loop closure..." << std::endl;
 	for (int32_t i = frames_number - 2; (i >= 0) && (i > (frames_number - 2 - 10)); i--)
 	{
-		Eigen::Isometry3d transform;
-		if (GetPose(cur_frame_, key_frames_[i], transform) < pnp_inliers_threshold_)
+		Eigen::Isometry3d transform = cur_frame_.GetTransform();
+		if (GetPose(cur_frame_, key_frames_[i], transform) < 40)
 		{
 			continue;
 		}
@@ -133,18 +119,10 @@ void LoopClosing::LoopClose()
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
 		edge->computeError();
-
-		if (edge->chi2() <= chi2_threshold_)
-		{
-			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
-			local_error_sum_ += edge->chi2();
-			std::cout << ", total error: " << local_error_sum_ << std::endl;
-			optimizer_.addEdge(edge);
-		}
-		else
-		{
-			delete edge;
-		}
+		std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2();
+		local_error_sum_ += edge->chi2();
+		std::cout << ", total error: " << local_error_sum_ << std::endl;
+		optimizer_.addEdge(edge);
 	}
 
 	std::cout << "Detecting global loop closure..." << std::endl;
@@ -154,8 +132,8 @@ void LoopClosing::LoopClose()
 	{
 		for (auto loop_frame : loop_frames)
 		{
-			Eigen::Isometry3d transform;
-			if (GetPose(cur_frame_, *loop_frame, transform) < pnp_inliers_threshold_)
+			Eigen::Isometry3d transform = cur_frame_.GetTransform();
+			if (GetPose(cur_frame_, *loop_frame, transform) < 40)
 			{
 				continue;
 			}
@@ -167,18 +145,10 @@ void LoopClosing::LoopClose()
 			edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 			edge->setRobustKernel(new g2o::RobustKernelHuber());
 			edge->computeError();
-
-			if (edge->chi2() <= chi2_threshold_)
-			{
-				std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
-				global_error_sum_ += edge->chi2();
-				std::cout << ", total error: " << global_error_sum_ << std::endl;
-				optimizer_.addEdge(edge);
-			}
-			else
-			{
-				delete edge;
-			}
+			std::cout << "Global loop closure with " << loop_frame->id_ << ", error: " << edge->chi2();
+			global_error_sum_ += edge->chi2();
+			std::cout << ", total error: " << global_error_sum_ << std::endl;
+			optimizer_.addEdge(edge);
 		}
 	}
 
@@ -188,7 +158,7 @@ void LoopClosing::LoopClose()
 	{
 		cout << "Optimizing..." << endl;
 		optimizer_.initializeOptimization();
-		optimizer_.optimize(20);
+		optimizer_.optimize(10);
 		cout << "Optimized!" << endl;
 
 		for (auto key_frame : key_frames_)
@@ -215,7 +185,7 @@ std::vector<Frame *> LoopClosing::GetLoopFrames()
 {
 	std::vector<Frame *> result;
 	int32_t frames_number = (int32_t)key_frames_.size();
-	for (int32_t i = frames_number - 2; i >= 0; i--)
+	for (int32_t i = frames_number - 2 - 10; i >= 0; i--)
 	{
 		double score = vocabulary_.score(cur_frame_.bow_vector, key_frames_[i].bow_vector);
 		// std::cout << "DBoW2 score with " << key_frames_[i].id_ << " : " << score << std::endl;
@@ -283,21 +253,9 @@ int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_
 	{
 		return 0;
 	}
+	
+	std::vector<int32_t> inliers_index;
+	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, p_transform);
 
-	cv::Mat inliers, rotation, translation;
-	cv::solvePnPRansac(query_frame_points, train_frame_points, camera_K_, camera_D_,
-		rotation, translation, false, pnp_iterations_count_, pnp_error_, pnp_min_inliers_count_, inliers);
-
-	cv::Mat rotation_3x3;
-	Rodrigues(rotation, rotation_3x3);
-	Eigen::Matrix3d rotation_eigen;
-	cv::cv2eigen(rotation_3x3, rotation_eigen);
-	p_transform = Eigen::Isometry3d::Identity();
-	Eigen::AngleAxisd angle(rotation_eigen);
-	p_transform = angle;
-	p_transform(0, 3) = translation.at<double>(0, 0);
-	p_transform(1, 3) = translation.at<double>(1, 0);
-	p_transform(2, 3) = translation.at<double>(2, 0);
-
-	return inliers.rows;
+	return inliers_index.size();
 }

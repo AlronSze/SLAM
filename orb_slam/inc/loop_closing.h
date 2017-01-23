@@ -38,9 +38,6 @@ private:
 	cv::Mat camera_K_;
 	cv::Mat camera_D_;
 	float match_ratio_;
-	int pnp_iterations_count_;
-	float pnp_error_;
-	int pnp_min_inliers_count_;
 	int pnp_inliers_threshold_;
 	double local_error_sum_;
 	double global_error_sum_;

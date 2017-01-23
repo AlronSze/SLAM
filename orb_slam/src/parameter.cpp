@@ -38,9 +38,9 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage["filter"]["depth_max"] >> kFilterDepthMax_;
 
 	// pnp parameters
-	file_storage["pnp"]["iterations_count"] >> kPNPIterationsCount_;
-	file_storage["pnp"]["error"] >> kPNPError_;
-	file_storage["pnp"]["min_inliers_count"] >> kPNPMinInliersCount_;
+	//file_storage["pnp"]["iterations_count"] >> kPNPIterationsCount_;
+	//file_storage["pnp"]["error"] >> kPNPError_;
+	//file_storage["pnp"]["min_inliers_count"] >> kPNPMinInliersCount_;
 	file_storage["pnp"]["inliers_threshold"] >> KPNPInliersThreshold_;
 
 	// vocabulary directory

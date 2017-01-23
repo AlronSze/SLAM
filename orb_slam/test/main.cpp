@@ -39,7 +39,7 @@ int main()
 #ifdef DEBUG_DRAW
 		draw_image.toDrawFrame(*frame, 1);
 #endif // DEBUG_DRAW
-		// frame->ReleaseImage();
+		frame->ReleaseImage();
 		
 		tracking.GetFrame(frame);
 		delete frame;
