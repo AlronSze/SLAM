@@ -14,6 +14,7 @@ public:
 	LoopClosing(const Parameter & p_parameter, Map * p_map);
 
 	void GetKeyFrame(const Frame & p_frame);
+	void OptimizeLast();
 	inline void SaveG2OFile(const char * p_g2o_file_name);
 	inline void PopKeyFrame();
 
@@ -24,8 +25,8 @@ private:
 	void AddCurFrameToGraph();
 	void LoopClose();
 	std::vector<Frame *> GetLoopFrames();
-	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame);
-	int32_t GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform);
+	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame) const;
+	int32_t GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform) const;
 
 private:
 	std::vector<Frame> key_frames_;

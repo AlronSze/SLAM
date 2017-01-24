@@ -22,23 +22,29 @@ void Map::GetKeyFrames(const std::vector<Frame> & p_frame)
 
 void Map::Run()
 {
-	pcl::visualization::CloudViewer viewer("viewer");
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_map(new pcl::PointCloud<pcl::PointXYZRGBA>);
+	pcl::visualization::CloudViewer viewer("Point Cloud Viewer");
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
 	while (1)
 	{
 		if (!can_draw_)
 		{
 			int32_t key_frames_size = (int32_t)key_frames_.size();
+
+			#pragma omp parallel for
 			for (int32_t i = 0; i < key_frames_size; i++)
 			{
-				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloud(key_frames_[i]);
-				key_frames_[i].ReleaseImage();
-				*global_map += *temp;
-			}
-			viewer.showCloud(global_map);
+				//pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudForWhole(key_frames_[i]);
 
-			global_map->clear();
+				#pragma omp critical (section)
+				{
+					*global_cloud += *new_cloud;
+				}
+			}
+			viewer.showCloud(global_cloud);
+
+			global_cloud->clear();
 			key_frames_.clear();
 
 			can_draw_ = true;
@@ -86,36 +92,7 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame & p_frame)
 {
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr result(new pcl::PointCloud<pcl::PointXYZRGBA>());
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>());
-
-	int32_t points_number = (int32_t)p_frame.point_3d_.size();
-
-	for (int32_t y = 0; y < p_frame.depth_image_.rows; y += 5)
-	{
-		for (int32_t x = 0; x < p_frame.depth_image_.cols; x += 5)
-		{
-			uint16_t depth = p_frame.depth_image_.ptr<uint16_t>(y)[x];
-			if ((depth == 0) || (depth > 4 * 5000))
-				continue;
-
-			pcl::PointXYZRGBA point_xyzrgb;
-
-			cv::Point3f point_3f;
-			point_3f.z = (float)depth / camera_scale_;
-			point_3f.x = ((float)x - camera_cx_) * point_3f.z / camera_fx_;
-			point_3f.y = ((float)y - camera_cy_) * point_3f.z / camera_fy_;
-
-			point_xyzrgb.b = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3];
-			point_xyzrgb.g = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
-			point_xyzrgb.r = p_frame.rgb_image_.ptr<uint8_t>(y)[x * 3 + 2];
-
-			point_xyzrgb.x = point_3f.x;
-			point_xyzrgb.y = point_3f.y;
-			point_xyzrgb.z = point_3f.z;
-
-			temp->points.push_back(point_xyzrgb);
-		}
-	}
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(p_frame.point_cloud_);
 
 	Eigen::Isometry3d T = p_frame.GetTransform();
 	pcl::transformPointCloud(*temp, *result, T.matrix());

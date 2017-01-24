@@ -39,12 +39,13 @@ int main()
 #ifdef DEBUG_DRAW
 		draw_image.toDrawFrame(*frame, 1);
 #endif // DEBUG_DRAW
-		frame->ReleaseImage();
 		
 		tracking.GetFrame(frame);
 		delete frame;
 		std::cout << std::endl;
 	}
+
+	loop_closing.OptimizeLast();
 
 	std::cout << "Press any key to shut down SLAM." << std::endl;
 	getchar();

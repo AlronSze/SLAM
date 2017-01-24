@@ -44,6 +44,8 @@ void Tracking::Track()
 	{
 		if (Initialization())
 		{
+			cur_frame_->SetPointCloud(10);
+			cur_frame_->ReleaseImage();
 			key_frames_.push_back(Frame(*cur_frame_));
 			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
 		}
@@ -72,6 +74,8 @@ void Tracking::Track()
 		if (((norm < 1.9) && (norm > 1.78)) || is_relocalized)
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
+			cur_frame_->SetPointCloud(10);
+			cur_frame_->ReleaseImage();
 			key_frames_.push_back(Frame(*cur_frame_));
 			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
 			last_key_frame_dist_ = 0;
