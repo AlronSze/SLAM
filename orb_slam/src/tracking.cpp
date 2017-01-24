@@ -56,7 +56,7 @@ void Tracking::Track()
 		//is_tracked = TrackWithMotion();
 		//if (!is_tracked)
 		//{
-			is_tracked = TrackWithRefFrame();
+			is_tracked = TrackWithLastKeyFrame();
 		//}
 	}
 	else
@@ -108,7 +108,7 @@ bool Tracking::TrackWithMotion()
 	return true;
 }
 
-bool Tracking::TrackWithRefFrame()
+bool Tracking::TrackWithLastKeyFrame()
 {
 	if (OptimizePose(key_frames_.back(), *cur_frame_) < pnp_inliers_threshold_)
 	{
@@ -117,7 +117,7 @@ bool Tracking::TrackWithRefFrame()
 		return false;
 	}
 
-	std::cout << "Tracking With RefFrame Succeeded!" << std::endl;
+	std::cout << "Tracking With Last Key Frame Succeeded!" << std::endl;
 	return true;
 }
 

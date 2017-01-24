@@ -17,7 +17,7 @@ private:
 	void Track();
 	bool Initialization();
 	bool TrackWithMotion();
-	bool TrackWithRefFrame();
+	bool TrackWithLastKeyFrame();
 	bool Relocalization();
 	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame);
 	int32_t OptimizePose(const Frame & p_query_frame, Frame & p_train_frame);

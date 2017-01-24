@@ -1,6 +1,5 @@
 #include "../inc/map.h"
 
-//#include <pcl/filters/voxel_grid.h>
 #include <windows.h>
 
 Map::Map(const Parameter & p_parameter) : can_draw_(true)
@@ -30,9 +29,11 @@ void Map::Run()
 	{
 		if (!can_draw_)
 		{
-			for (auto key_frame : key_frames_)
+			int32_t key_frames_size = (int32_t)key_frames_.size();
+			for (int32_t i = 0; i < key_frames_size; i++)
 			{
-				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloudForWhole(key_frame);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp = GetPointCloud(key_frames_[i]);
+				key_frames_[i].ReleaseImage();
 				*global_map += *temp;
 			}
 			viewer.showCloud(global_map);

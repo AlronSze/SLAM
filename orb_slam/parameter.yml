@@ -1,7 +1,7 @@
 %YAML:1.2
 
 # image number
-image_number : 1352 # cafe(782), freiburg1_room(1352), freiburg2_desk(2893)
+image_number : 1639 # cafe(782), freiburg1_room(1352), freiburg2_desk(2893), freiburg3_nostructure_texture_near_withloop(1639)
 
 # camera parameters cafe
 #camera:
@@ -17,17 +17,17 @@ image_number : 1352 # cafe(782), freiburg1_room(1352), freiburg2_desk(2893)
 #  d4 : 0.0
 
 # camera parameters fr1
-camera:
-  fx : 517.3
-  fy : 516.5
-  cx : 318.6
-  cy : 255.3
-  scale : 5000.0
-  d0 : 0.2624
-  d1 : -0.9531
-  d2 : -0.0054
-  d3 : 0.0026
-  d4 : 1.1633
+#camera:
+#  fx : 517.3
+#  fy : 516.5
+#  cx : 318.6
+#  cy : 255.3
+#  scale : 5000.0
+#  d0 : 0.2624
+#  d1 : -0.9531
+#  d2 : -0.0054
+#  d3 : 0.0026
+#  d4 : 1.1633
 
 # camera parameters fr2
 #camera:
@@ -42,6 +42,19 @@ camera:
 #  d3 : -0.0001
 #  d4 : 0.9172
 
+# camera parameters fr3
+camera:
+  fx : 535.4
+  fy : 539.2
+  cx : 320.1
+  cy : 247.6
+  scale : 5000.0
+  d0 : 0.0
+  d1 : 0.0
+  d2 : 0.0
+  d3 : 0.0
+  d4 : 0.0
+
 # orb parameters
 orb:
   features_max : 1000
@@ -52,7 +65,7 @@ orb:
   match_ratio : 0.8
 
 # dataset directory
-dataset_dir : "../../Dataset/freiburg1_room/" # cafe, freiburg1_room, freiburg2_desk
+dataset_dir : "../../Dataset/freiburg3_nostructure_texture_near_withloop/" # cafe, freiburg1_room, freiburg2_desk, freiburg3_nostructure_texture_near_withloop
 
 # point cloud filter parameters
 filter:
