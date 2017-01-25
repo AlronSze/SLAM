@@ -34,7 +34,7 @@ void Map::Run()
 			#pragma omp parallel for
 			for (int32_t i = 0; i < key_frames_size; i++)
 			{
-				//pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
+				// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
 				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudForWhole(key_frames_[i]);
 
 				#pragma omp critical (section)

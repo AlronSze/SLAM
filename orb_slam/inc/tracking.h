@@ -19,7 +19,6 @@ private:
 	bool TrackWithMotion();
 	bool TrackWithLastKeyFrame();
 	bool Relocalization();
-	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame);
 	int32_t OptimizePose(const Frame & p_query_frame, Frame & p_train_frame);
 
 private:
@@ -30,7 +29,8 @@ private:
 	} tracking_state_;
 
 	float match_ratio_;
-	int pnp_inliers_threshold_;
+	int32_t match_threshold_;
+	int32_t pnp_inliers_threshold_;
 	cv::Mat camera_K_;
 	cv::Mat camera_D_;
 	cv::Mat cur_rotation_;
@@ -39,6 +39,6 @@ private:
 	Frame last_frame_;
 	std::vector<Frame> key_frames_;
 	LoopClosing *loop_closing_;
-	int last_key_frame_dist_;
+	int32_t last_key_frame_dist_;
 	Eigen::Isometry3d last_transform_;
 };

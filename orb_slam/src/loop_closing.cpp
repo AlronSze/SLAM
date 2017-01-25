@@ -10,7 +10,8 @@
 
 #include "../inc/optimizer.h"
 
-LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
+LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) :
+	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -31,12 +32,16 @@ LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) : local_err
 	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin_;
 	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin_;
 	match_ratio_ = p_parameter.kORBMatchRatio_;
+	match_threshold_ = p_parameter.kORBMatchThreshold_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
 
 	map_ = p_map;
 
-	LoadVocabulary();
+	if (!vocabulary_dir_.empty())
+	{
+		LoadVocabulary();
+	}
 	InitializeG2O();
 }
 
@@ -50,7 +55,7 @@ void LoopClosing::LoadVocabulary()
 void LoopClosing::InitializeG2O()
 {
 	g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>* linear_solver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
-	linear_solver->setBlockOrdering(false);
+	// linear_solver->setBlockOrdering(false);
 	g2o::BlockSolver_6_3 *block_solver = new g2o::BlockSolver_6_3(linear_solver);
 	g2o::OptimizationAlgorithmLevenberg* algorithm = new g2o::OptimizationAlgorithmLevenberg(block_solver);
 	optimizer_.setAlgorithm(algorithm);
@@ -257,39 +262,12 @@ void LoopClosing::SetBowVector(Frame & p_frame)
 	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 2);
 }
 
-std::vector<cv::DMatch> LoopClosing::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame) const
+int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform)
 {
-	cv::BruteForceMatcher<cv::HammingLUT> matcher;
-	std::vector<std::vector<cv::DMatch>> matches_knn;
-	std::vector<cv::DMatch> matches;
-
-	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
-
-	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
-	{
-		if (matches_knn[i][0].distance < match_ratio_ * matches_knn[i][1].distance)
-		{
-			matches.push_back(matches_knn[i][0]);
-		}
-	}
-
-	return matches;
-}
-
-int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform) const
-{
-	std::vector<cv::DMatch> matches = MatchTwoFrame(p_query_frame, p_train_frame);
+	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
 	int32_t matches_size = (int32_t)matches.size();
 
-	if (matches_size < 20)
-	{
-		return 0;
-	}
-
-	float camera_fx = camera_K_.at<float>(0, 0);
-	float camera_fy = camera_K_.at<float>(1, 1);
-	float camera_cx = camera_K_.at<float>(0, 2);
-	float camera_cy = camera_K_.at<float>(1, 2);
+	if (matches_size < match_threshold_) return 0;
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
@@ -303,10 +281,7 @@ int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 	}
 
-	if ((query_frame_points.size() == 0) || (train_frame_points.size() == 0))
-	{
-		return 0;
-	}
+	if (query_frame_points.empty()) return 0;
 	
 	std::vector<int32_t> inliers_index;
 	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, p_transform);

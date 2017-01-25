@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
+//#include <opencv2/highgui/highgui.hpp> // DEBUG
 #include <opencv2/legacy/legacy.hpp>
 
 #include "../inc/optimizer.h"
@@ -26,6 +27,7 @@ Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) 
 	temp_D.copyTo(camera_D_);
 
 	match_ratio_ = p_parameter.kORBMatchRatio_;
+	match_threshold_ = p_parameter.kORBMatchThreshold_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 }
 
@@ -44,7 +46,7 @@ void Tracking::Track()
 	{
 		if (Initialization())
 		{
-			cur_frame_->SetPointCloud(10);
+			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			key_frames_.push_back(Frame(*cur_frame_));
 			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
@@ -74,7 +76,7 @@ void Tracking::Track()
 		if (((norm < 1.9) && (norm > 1.78)) || is_relocalized)
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
-			cur_frame_->SetPointCloud(10);
+			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			key_frames_.push_back(Frame(*cur_frame_));
 			loop_closing_->GetKeyFrame(Frame(*cur_frame_));
@@ -155,39 +157,12 @@ bool Tracking::Relocalization()
 	return false;
 }
 
-std::vector<cv::DMatch> Tracking::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame)
-{
-	cv::BruteForceMatcher<cv::HammingLUT> matcher;
-	std::vector<std::vector<cv::DMatch>> matches_knn;
-	std::vector<cv::DMatch> matches;
-
-	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
-
-	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
-	{
-		if (matches_knn[i][0].distance < match_ratio_ * matches_knn[i][1].distance)
-		{
-			matches.push_back(matches_knn[i][0]);
-		}
-	}
-
-	return matches;
-}
-
 int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame)
 {
-	std::vector<cv::DMatch> matches = MatchTwoFrame(p_query_frame, p_train_frame);
+	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
 	int32_t matches_size = (int32_t)matches.size();
-	//std::cout << "Matches number: " << matches_size << std::endl;
-	if (matches_size < pnp_inliers_threshold_)
-	{
-		return 0;
-	}
-
-	float camera_fx = camera_K_.at<float>(0, 0);
-	float camera_fy = camera_K_.at<float>(1, 1);
-	float camera_cx = camera_K_.at<float>(0, 2);
-	float camera_cy = camera_K_.at<float>(1, 2);
+	
+	if (matches_size < match_threshold_) return 0;
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
@@ -201,10 +176,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 	}
 
-	if ((query_frame_points.size() == 0) || (train_frame_points.size() == 0))
-	{
-		return 0;
-	}
+	if (query_frame_points.empty()) return 0;
 
 	std::vector<int32_t> inliers_index;
 	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, last_transform_);
@@ -214,7 +186,7 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 	Eigen::Vector3d translation(last_transform_(0, 3), last_transform_(1, 3), last_transform_(2, 3));
 	cv::eigen2cv(rotation, cur_rotation_);
 	cv::eigen2cv(translation, cur_translation_);
-	//std::cout << "Inliers Number: " << inliers_index.size() << std::endl;
+	// std::cout << "Inliers Number: " << inliers_index.size() << std::endl;
 
-	 return inliers_index.size();
+	return inliers_index.size();
 }

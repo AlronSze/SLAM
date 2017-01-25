@@ -25,8 +25,7 @@ private:
 	void AddCurFrameToGraph();
 	void LoopClose();
 	std::vector<Frame *> GetLoopFrames();
-	std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame) const;
-	int32_t GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform) const;
+	int32_t GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform);
 
 private:
 	std::vector<Frame> key_frames_;
@@ -35,11 +34,12 @@ private:
 	g2o::SparseOptimizer optimizer_;
 	std::string vocabulary_dir_;
 	double dbow2_score_min_;
-	int dbow2_interval_min_;
+	int32_t dbow2_interval_min_;
 	cv::Mat camera_K_;
 	cv::Mat camera_D_;
 	float match_ratio_;
-	int pnp_inliers_threshold_;
+	int32_t match_threshold_;
+	int32_t pnp_inliers_threshold_;
 	double local_error_sum_;
 	double global_error_sum_;
 	double chi2_threshold_;

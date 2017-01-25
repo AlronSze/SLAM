@@ -34,18 +34,16 @@ public:
 	int kORBThresholdInit_;
 	int kORBThresholdMin_;
 	float kORBMatchRatio_;
+	int kORBMatchThreshold_;
 
 	// dataset directory
 	std::string kDatasetDir_;
 
 	// point cloud filter parameters
-	float kFilterLeafSize_;
+	float kFilterInterval_;
 	float kFilterDepthMax_;
 
 	// pnp parameters
-	//int kPNPIterationsCount_;
-	//float kPNPError_;
-	//int kPNPMinInliersCount_;
 	int KPNPInliersThreshold_;
 
 	// vocabulary directory

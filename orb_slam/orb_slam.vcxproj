@@ -74,8 +74,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\PCL1.8.0\3rdParty\VTK\include\vtk-7.0;C:\PCL1.8.0\include\pcl-1.8;C:\PCL1.8.0\3rdParty\Boost\include\boost-1_61;F:\Lib\DLib-3a4a207\include;C:\PCL1.8.0\3rdParty\Eigen\eigen3;F:\Lib\g2o-orbslam;F:\Lib\OpenCV-2.4.13.2\build\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\PCL1.8.0\3rdParty\Boost\lib;C:\PCL1.8.0\lib;F:\Lib\DLib-3a4a207\build\Debug;F:\Lib\g2o-orbslam\bin\Debug;F:\Lib\OpenCV-2.4.13.2\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\PCL1.8.0\3rdParty\VTK\include\vtk-7.0;C:\PCL1.8.0\include\pcl-1.8;C:\PCL1.8.0\3rdParty\Boost\include\boost-1_61;C:\PCL1.8.0\3rdParty\Eigen\eigen3;F:\Lib\g2o-orbslam;F:\Lib\OpenCV-2.4.13.2\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\PCL1.8.0\3rdParty\Boost\lib;C:\PCL1.8.0\lib;F:\Lib\g2o-orbslam\bin\Debug;F:\Lib\OpenCV-2.4.13.2\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -112,7 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_calib3d2413d.lib;opencv_contrib2413d.lib;opencv_core2413d.lib;opencv_features2d2413d.lib;opencv_flann2413d.lib;opencv_gpu2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_legacy2413d.lib;opencv_ml2413d.lib;opencv_nonfree2413d.lib;opencv_objdetect2413d.lib;opencv_ocl2413d.lib;opencv_photo2413d.lib;opencv_stitching2413d.lib;opencv_superres2413d.lib;opencv_ts2413d.lib;opencv_video2413d.lib;opencv_videostab2413d.lib;g2o_calibration_odom_laser_d.lib;g2o_cli_d.lib;g2o_core_d.lib;g2o_csparse_extension_d.lib;g2o_ext_csparse_d.lib;g2o_ext_freeglut_minimal_d.lib;g2o_hierarchical_d.lib;g2o_interface_d.lib;g2o_opengl_helper_d.lib;g2o_parser_d.lib;g2o_solver_csparse_d.lib;g2o_solver_dense_d.lib;g2o_solver_eigen_d.lib;g2o_solver_pcg_d.lib;g2o_solver_slam2d_linear_d.lib;g2o_solver_structure_only_d.lib;g2o_stuff_d.lib;g2o_tutorial_slam2d_d.lib;g2o_types_data_d.lib;g2o_types_icp_d.lib;g2o_types_sba_d.lib;g2o_types_sclam2d_d.lib;g2o_types_sim3_d.lib;g2o_types_slam2d_addons_d.lib;g2o_types_slam2d_d.lib;g2o_types_slam3d_addons_d.lib;g2o_types_slam3d_d.lib;g2o_viewer_d.lib;DLib.lib;pcl_filters_debug.lib;pcl_visualization_debug.lib;pcl_common_debug.lib;libboost_thread-vc140-mt-gd-1_61.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_calib3d2413d.lib;opencv_contrib2413d.lib;opencv_core2413d.lib;opencv_features2d2413d.lib;opencv_flann2413d.lib;opencv_gpu2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_legacy2413d.lib;opencv_ml2413d.lib;opencv_nonfree2413d.lib;opencv_objdetect2413d.lib;opencv_ocl2413d.lib;opencv_photo2413d.lib;opencv_stitching2413d.lib;opencv_superres2413d.lib;opencv_ts2413d.lib;opencv_video2413d.lib;opencv_videostab2413d.lib;g2o_calibration_odom_laser_d.lib;g2o_cli_d.lib;g2o_core_d.lib;g2o_csparse_extension_d.lib;g2o_ext_csparse_d.lib;g2o_ext_freeglut_minimal_d.lib;g2o_hierarchical_d.lib;g2o_interface_d.lib;g2o_opengl_helper_d.lib;g2o_parser_d.lib;g2o_solver_csparse_d.lib;g2o_solver_dense_d.lib;g2o_solver_eigen_d.lib;g2o_solver_pcg_d.lib;g2o_solver_slam2d_linear_d.lib;g2o_solver_structure_only_d.lib;g2o_stuff_d.lib;g2o_tutorial_slam2d_d.lib;g2o_types_data_d.lib;g2o_types_icp_d.lib;g2o_types_sba_d.lib;g2o_types_sclam2d_d.lib;g2o_types_sim3_d.lib;g2o_types_slam2d_addons_d.lib;g2o_types_slam2d_d.lib;g2o_types_slam3d_addons_d.lib;g2o_types_slam3d_d.lib;g2o_viewer_d.lib;pcl_visualization_debug.lib;pcl_common_debug.lib;libboost_thread-vc140-mt-gd-1_61.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,16 +153,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="3rd_part\dbow2\BowVector.cpp" />
-    <ClCompile Include="3rd_part\dbow2\FBrief.cpp" />
+    <ClCompile Include="3rd_part\dbow2\DUtils\Random.cpp" />
+    <ClCompile Include="3rd_part\dbow2\DUtils\Timestamp.cpp" />
     <ClCompile Include="3rd_part\dbow2\FeatureVector.cpp" />
     <ClCompile Include="3rd_part\dbow2\FORB.cpp" />
-    <ClCompile Include="3rd_part\dbow2\FSurf64.cpp" />
-    <ClCompile Include="3rd_part\dbow2\QueryResults.cpp" />
     <ClCompile Include="3rd_part\dbow2\ScoringObject.cpp" />
     <ClCompile Include="3rd_part\orb-slam2\ORBextractor.cpp" />
     <ClCompile Include="src\draw_image.cpp" />
     <ClCompile Include="src\frame.cpp" />
-    <ClCompile Include="src\local_mapping.cpp" />
     <ClCompile Include="src\loop_closing.cpp" />
     <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\optimizer.cpp" />
@@ -172,20 +170,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_part\dbow2\BowVector.h" />
-    <ClInclude Include="3rd_part\dbow2\DBoW2.h" />
-    <ClInclude Include="3rd_part\dbow2\FBrief.h" />
+    <ClInclude Include="3rd_part\dbow2\DUtils\Random.h" />
+    <ClInclude Include="3rd_part\dbow2\DUtils\Timestamp.h" />
     <ClInclude Include="3rd_part\dbow2\FClass.h" />
     <ClInclude Include="3rd_part\dbow2\FeatureVector.h" />
     <ClInclude Include="3rd_part\dbow2\FORB.h" />
-    <ClInclude Include="3rd_part\dbow2\FSurf64.h" />
-    <ClInclude Include="3rd_part\dbow2\QueryResults.h" />
     <ClInclude Include="3rd_part\dbow2\ScoringObject.h" />
-    <ClInclude Include="3rd_part\dbow2\TemplatedDatabase.h" />
-    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h" />
+    <ClInclude Include="3rd_part\dbow2\templatedvocabulary.h" />
     <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h" />
     <ClInclude Include="inc\draw_image.h" />
     <ClInclude Include="inc\frame.h" />
-    <ClInclude Include="inc\local_mapping.h" />
     <ClInclude Include="inc\loop_closing.h" />
     <ClInclude Include="inc\map.h" />
     <ClInclude Include="inc\optimizer.h" />

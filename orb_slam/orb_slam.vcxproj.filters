@@ -17,7 +17,10 @@
       <UniqueIdentifier>{aea3eeec-f415-4389-b01d-3b477d31966c}</UniqueIdentifier>
     </Filter>
     <Filter Include="3rd_part\dbow2">
-      <UniqueIdentifier>{dc1f03eb-6637-405c-a279-de3a490f96e9}</UniqueIdentifier>
+      <UniqueIdentifier>{8ae08f4f-afc3-43b0-82c1-efd0b289bc7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_part\dbow2\dutils">
+      <UniqueIdentifier>{83ac167d-e421-4eb6-9615-125ac2dab19b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,16 +45,13 @@
     <ClCompile Include="src\tracking.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\local_mapping.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\loop_closing.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="3rd_part\dbow2\BowVector.cpp">
-      <Filter>3rd_part\dbow2</Filter>
+    <ClCompile Include="src\optimizer.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="3rd_part\dbow2\FBrief.cpp">
+    <ClCompile Include="3rd_part\dbow2\BowVector.cpp">
       <Filter>3rd_part\dbow2</Filter>
     </ClCompile>
     <ClCompile Include="3rd_part\dbow2\FeatureVector.cpp">
@@ -60,17 +60,14 @@
     <ClCompile Include="3rd_part\dbow2\FORB.cpp">
       <Filter>3rd_part\dbow2</Filter>
     </ClCompile>
-    <ClCompile Include="3rd_part\dbow2\FSurf64.cpp">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClCompile>
-    <ClCompile Include="3rd_part\dbow2\QueryResults.cpp">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClCompile>
     <ClCompile Include="3rd_part\dbow2\ScoringObject.cpp">
       <Filter>3rd_part\dbow2</Filter>
     </ClCompile>
-    <ClCompile Include="src\optimizer.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="3rd_part\dbow2\DUtils\Random.cpp">
+      <Filter>3rd_part\dbow2\dutils</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\DUtils\Timestamp.cpp">
+      <Filter>3rd_part\dbow2\dutils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,19 +89,13 @@
     <ClInclude Include="inc\tracking.h">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="inc\local_mapping.h">
-      <Filter>inc</Filter>
-    </ClInclude>
     <ClInclude Include="inc\loop_closing.h">
       <Filter>inc</Filter>
     </ClInclude>
+    <ClInclude Include="inc\optimizer.h">
+      <Filter>inc</Filter>
+    </ClInclude>
     <ClInclude Include="3rd_part\dbow2\BowVector.h">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\DBoW2.h">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\FBrief.h">
       <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
     <ClInclude Include="3rd_part\dbow2\FClass.h">
@@ -116,23 +107,17 @@
     <ClInclude Include="3rd_part\dbow2\FORB.h">
       <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\FSurf64.h">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\QueryResults.h">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClInclude>
     <ClInclude Include="3rd_part\dbow2\ScoringObject.h">
       <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\TemplatedDatabase.h">
+    <ClInclude Include="3rd_part\dbow2\templatedvocabulary.h">
       <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
-      <Filter>3rd_part\dbow2</Filter>
+    <ClInclude Include="3rd_part\dbow2\DUtils\Random.h">
+      <Filter>3rd_part\dbow2\dutils</Filter>
     </ClInclude>
-    <ClInclude Include="inc\optimizer.h">
-      <Filter>inc</Filter>
+    <ClInclude Include="3rd_part\dbow2\DUtils\Timestamp.h">
+      <Filter>3rd_part\dbow2\dutils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

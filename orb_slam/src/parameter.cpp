@@ -29,18 +29,16 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage["orb"]["threshold_init"] >> kORBThresholdInit_;
 	file_storage["orb"]["threshold_min"] >> kORBThresholdMin_;
 	file_storage["orb"]["match_ratio"] >> kORBMatchRatio_;
+	file_storage["orb"]["match_threshold"] >> kORBMatchThreshold_;
 
 	// dataset directory
 	file_storage["dataset_dir"] >> kDatasetDir_;
 
 	// point cloud filter parameters
-	file_storage["filter"]["leaf_size"] >> kFilterLeafSize_;
+	file_storage["filter"]["interval"] >> kFilterInterval_;
 	file_storage["filter"]["depth_max"] >> kFilterDepthMax_;
 
 	// pnp parameters
-	//file_storage["pnp"]["iterations_count"] >> kPNPIterationsCount_;
-	//file_storage["pnp"]["error"] >> kPNPError_;
-	//file_storage["pnp"]["min_inliers_count"] >> kPNPMinInliersCount_;
 	file_storage["pnp"]["inliers_threshold"] >> KPNPInliersThreshold_;
 
 	// vocabulary directory

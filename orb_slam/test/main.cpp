@@ -2,7 +2,6 @@
 #include "../inc/frame.h"
 #include "../inc/map.h"
 #include "../inc/tracking.h"
-#include "../inc/local_mapping.h"
 #include "../inc/loop_closing.h"
 
 #include <iostream>
@@ -20,7 +19,6 @@ int main()
 	Parameter parameter("parameter.yml");
 	Map * map = new Map(parameter);
 	std::thread * map_thread = new std::thread(&Map::Run, map);
-	// LocalMapping local_mapping;
 	LoopClosing loop_closing(parameter, map);
 	Tracking tracking(parameter, &loop_closing);
 	std::cout << std::endl << "SLAM initialized! Start to track." << std::endl << std::endl;

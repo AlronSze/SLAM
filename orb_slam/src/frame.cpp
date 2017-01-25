@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/make_shared.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/legacy/legacy.hpp>
 
 #include "../3rd_part/orb-slam2/ORBextractor.h"
 
@@ -17,7 +18,7 @@ Frame::Frame(const Frame & p_frame) :
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
 	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
 	camera_scale_(p_frame.camera_scale_), point_rgb_(p_frame.point_rgb_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector),
-	depth_max_(p_frame.depth_max_), point_cloud_(p_frame.point_cloud_)
+	depth_max_(p_frame.depth_max_), point_cloud_(p_frame.point_cloud_), filter_interval_(p_frame.filter_interval_)
 {
 }
 
@@ -36,6 +37,7 @@ Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(
 	camera_cy_ = p_parameter.kCameraParameters_.cy_;
 	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 	depth_max_ = p_parameter.kFilterDepthMax_;
+	filter_interval_ = p_parameter.kFilterInterval_;
 
 	GetImage(p_index);
 	GetKeyPointAndDescriptor();
@@ -127,16 +129,16 @@ std::vector<cv::Mat> Frame::GetDescriptorVector() const
 	return result;
 }
 
-void Frame::SetPointCloud(const int32_t p_filter)
+void Frame::SetPointCloud()
 {
 	point_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA>>();
 
 	const int32_t rows = depth_image_.rows;
 	const int32_t cols = depth_image_.cols;
 
-	for (int32_t y = 0; y < rows; y += p_filter)
+	for (int32_t y = 0; y < rows; y += filter_interval_)
 	{
-		for (int32_t x = 0; x < cols; x += p_filter)
+		for (int32_t x = 0; x < cols; x += filter_interval_)
 		{
 			uint16_t depth = depth_image_.ptr<uint16_t>(y)[x];
 			if ((depth == 0) || (depth >(uint16_t)(depth_max_ * camera_scale_))) continue;
@@ -159,4 +161,53 @@ void Frame::SetPointCloud(const int32_t p_filter)
 			point_cloud_->points.push_back(point_xyzrgb);
 		}
 	}
+}
+
+std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio)
+{
+	cv::BruteForceMatcher<cv::HammingLUT> matcher;
+	std::vector<std::vector<cv::DMatch>> matches_knn;
+	std::vector<cv::DMatch> matches;
+
+	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
+
+	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
+	{
+		if (matches_knn[i][0].distance < p_match_ratio * matches_knn[i][1].distance)
+		{
+			matches.push_back(matches_knn[i][0]);
+		}
+	}
+
+	return matches;
+	//return DoRansacMatch(p_query_frame, p_train_frame, matches);
+}
+
+std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches)
+{
+	const int32_t matches_size = (int32_t)p_matches.size();
+
+	std::vector<cv::DMatch> ransac_matches;
+	std::vector<cv::Point2f> query_points(p_matches.size());
+	std::vector<cv::Point2f> train_points(p_matches.size());
+
+	for (int32_t i = 0; i < matches_size; i++)
+	{
+		query_points[i] = p_query_frame.key_points_[p_matches[i].queryIdx].pt;
+		train_points[i] = p_train_frame.key_points_[p_matches[i].trainIdx].pt;
+	}
+
+	std::vector<uint8_t> inliers_mask(matches_size);
+	cv::findHomography(query_points, train_points, cv::RANSAC, 3.0, inliers_mask);
+
+	int32_t inliers_size = inliers_mask.size();
+	for (int32_t i = 0; i < inliers_size; i++)
+	{
+		if (inliers_mask[i])
+		{
+			ransac_matches.push_back(p_matches[i]);
+		}
+	}
+
+	return ransac_matches;
 }

@@ -27,7 +27,7 @@ public:
 	void GetImage(const int32_t p_index);
 	void GetKeyPointAndDescriptor();
 	void ComputePoint3D();
-	void SetPointCloud(const int32_t p_filter);
+	void SetPointCloud();
 	void ReleaseImage();
 	std::vector<cv::Mat> GetDescriptorVector() const;
 	inline cv::Point2f GetPoint2D(const int32_t p_index) const;
@@ -35,6 +35,9 @@ public:
 	inline uint16_t GetDepth(const int32_t p_y, const int32_t p_x) const;
 	inline void SetTransform(const Eigen::Isometry3d & p_transform);
 	inline Eigen::Isometry3d GetTransform() const;
+
+	static std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio);
+	static std::vector<cv::DMatch> DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches);
 
 public:
 	int32_t id_;
@@ -57,6 +60,7 @@ private:
 	int32_t orb_levels_;
 	int32_t orb_threshold_init_;
 	int32_t orb_threshold_min_;
+	int32_t filter_interval_;
 	std::string dataset_dir_;
 
 	float camera_fx_;
