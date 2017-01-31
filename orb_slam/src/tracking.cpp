@@ -161,12 +161,17 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 {
 	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
 	int32_t matches_size = (int32_t)matches.size();
+	// std::cout << "Match Number: " << matches.size() << std::endl;
 	
 	if (matches_size < match_threshold_) return 0;
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
-
+	std::vector<int32_t> match_valid_index;
+	query_frame_points.reserve(matches_size);
+	train_frame_points.reserve(matches_size);
+	match_valid_index.reserve(matches_size);
+	
 	for (int32_t i = 0; i < matches_size; i++)
 	{
 		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
@@ -174,19 +179,20 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
+		match_valid_index.push_back(i);
 	}
 
 	if (query_frame_points.empty()) return 0;
 
-	std::vector<int32_t> inliers_index;
-	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, last_transform_);
+	std::vector<bool> inliers_mask(match_valid_index.size(), true);
+	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, last_transform_);
+	
 	p_train_frame.SetTransform(last_transform_);
-
 	Eigen::Matrix3d rotation = last_transform_.rotation();
 	Eigen::Vector3d translation(last_transform_(0, 3), last_transform_(1, 3), last_transform_(2, 3));
 	cv::eigen2cv(rotation, cur_rotation_);
 	cv::eigen2cv(translation, cur_translation_);
-	// std::cout << "Inliers Number: " << inliers_index.size() << std::endl;
+	// std::cout << "Inliers Number: " << inliers_number << std::endl;
 
-	return inliers_index.size();
+	return inliers_number;
 }

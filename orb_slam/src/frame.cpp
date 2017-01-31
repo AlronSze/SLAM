@@ -18,7 +18,7 @@ Frame::Frame(const Frame & p_frame) :
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
 	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
 	camera_scale_(p_frame.camera_scale_), point_rgb_(p_frame.point_rgb_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector),
-	depth_max_(p_frame.depth_max_), point_cloud_(p_frame.point_cloud_), filter_interval_(p_frame.filter_interval_)
+	depth_max_(p_frame.depth_max_), point_cloud_(p_frame.point_cloud_), filter_interval_(p_frame.filter_interval_), point_2d_(p_frame.point_2d_)
 {
 }
 
@@ -88,14 +88,17 @@ void Frame::ComputePoint3D()
 		int32_t point_y = (int32_t)key_points_[i].pt.y;
 		uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
-		if( (depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+		if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
 		{
+			point_2d_.push_back(cv::Point2f(0, 0));
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
 			//point_rgb_.push_back(FrameRGB());
 			point_depth_.push_back(0);
 		}
 		else
 		{
+			point_2d_.push_back(cv::Point2f(point_x, point_y));
+
 			cv::Point3f point_3f;
 			point_3f.z = (float)depth / camera_scale_;
 			point_3f.x = ((float)point_x - camera_cx_) * point_3f.z / camera_fx_;
@@ -180,7 +183,7 @@ std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const 
 	}
 
 	return matches;
-	//return DoRansacMatch(p_query_frame, p_train_frame, matches);
+	// return DoRansacMatch(p_query_frame, p_train_frame, matches);
 }
 
 std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches)
@@ -198,7 +201,7 @@ std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const 
 	}
 
 	std::vector<uint8_t> inliers_mask(matches_size);
-	cv::findHomography(query_points, train_points, cv::RANSAC, 3.0, inliers_mask);
+	cv::findFundamentalMat(query_points, train_points, inliers_mask);
 
 	int32_t inliers_size = inliers_mask.size();
 	for (int32_t i = 0; i < inliers_size; i++)

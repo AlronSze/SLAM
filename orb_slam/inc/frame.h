@@ -45,9 +45,15 @@ public:
 	cv::Mat rgb_image_;
 	cv::Mat depth_image_;
 
+	float camera_fx_;
+	float camera_fy_;
+	float camera_cx_;
+	float camera_cy_;
+
 	DBoW2::BowVector bow_vector;
 	cv::Mat descriptors_;
 	std::vector<cv::KeyPoint> key_points_;
+	std::vector<cv::Point2f> point_2d_;
 	std::vector<cv::Point3f> point_3d_;
 	std::vector<FrameRGB> point_rgb_;
 	std::vector<uint16_t> point_depth_;
@@ -63,10 +69,6 @@ private:
 	int32_t filter_interval_;
 	std::string dataset_dir_;
 
-	float camera_fx_;
-	float camera_fy_;
-	float camera_cx_;
-	float camera_cy_;
 	float camera_scale_;
 	float depth_max_;
 

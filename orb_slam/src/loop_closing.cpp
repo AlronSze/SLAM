@@ -271,6 +271,10 @@ int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
+	std::vector<int32_t> match_valid_index;
+	query_frame_points.reserve(matches_size);
+	train_frame_points.reserve(matches_size);
+	match_valid_index.reserve(matches_size);
 
 	for (int32_t i = 0; i < matches_size; i++)
 	{
@@ -279,12 +283,13 @@ int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
+		match_valid_index.push_back(i);
 	}
 
 	if (query_frame_points.empty()) return 0;
 	
-	std::vector<int32_t> inliers_index;
-	Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_index, p_transform);
+	std::vector<bool> inliers_mask(match_valid_index.size(), true);
+	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);
 
-	return inliers_index.size();
+	return inliers_number;
 }

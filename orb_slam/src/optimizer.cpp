@@ -7,7 +7,7 @@
 #include <g2o/solvers/dense/linear_solver_dense.h>
 #include <g2o/types/sba/types_six_dof_expmap.h>
 
-void Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const std::vector<cv::Point2f>& p_image_points, const cv::Mat p_camera_k, std::vector<int32_t>& p_inliers_index, Eigen::Isometry3d & p_transform)
+int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const std::vector<cv::Point2f>& p_image_points, const cv::Mat p_camera_k, std::vector<bool> & p_inliers_mask, Eigen::Isometry3d & p_transform)
 {
 	g2o::SparseOptimizer optimizer;
 	g2o::BlockSolver_6_3::LinearSolverType * linear_solver = new g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>();
@@ -34,9 +34,6 @@ void Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const
 	const double camera_cy = (double)p_camera_k.at<float>(1, 2);
 	const float delta = sqrt(5.991);
 
-	std::vector<bool> inliers(image_size, true);
-	int inliers_count = object_size;
-
 	for (int32_t i = 0; i < object_size; i++)
 	{
 		g2o::EdgeSE3ProjectXYZOnlyPose * edge = new g2o::EdgeSE3ProjectXYZOnlyPose();
@@ -56,6 +53,7 @@ void Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const
 		edges.push_back(edge);
 	}
 
+	int32_t outliers;
 	int32_t edges_size = (int32_t)edges.size();
 	for (int32_t it = 0; it < 4; it++)
 	{
@@ -65,24 +63,25 @@ void Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const
 		optimizer.initializeOptimization();
 		optimizer.optimize(10);
 
+		outliers = 0;
 		for (int32_t i = 0; i < edges_size; i++)
 		{
 			g2o::EdgeSE3ProjectXYZOnlyPose* edge_pose = edges[i];
 
-			if (!inliers[i])
+			if (!p_inliers_mask[i])
 			{
 				edge_pose->computeError();
 			}
 
 			if (edge_pose->chi2() > 5.991)
 			{
-				inliers[i] = false;
+				p_inliers_mask[i] = false;
 				edge_pose->setLevel(1);
-				inliers_count--;
+				outliers++;
 			}
 			else
 			{
-				inliers[i] = true;
+				p_inliers_mask[i] = true;
 				edge_pose->setLevel(0);
 			}
 
@@ -92,23 +91,15 @@ void Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const
 			}
 		}
 
-		if (inliers_count < 10)
+		if ((image_size - outliers) < 10)
 		{
 			break;
 		}
 	}
 
-	int32_t inliers_size = (int32_t)inliers.size();
-	for (int32_t i = 0; i < inliers_size; i++)
-	{
-		if (inliers[i])
-		{
-			p_inliers_index.push_back(i);
-		}
-	}
-
 	g2o::VertexSE3Expmap* vertex_recover = dynamic_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(0));
 	g2o::SE3Quat se3_recover = vertex_recover->estimate();
-
 	p_transform = Eigen::Isometry3d(se3_recover);
+
+	return image_size - outliers;
 }

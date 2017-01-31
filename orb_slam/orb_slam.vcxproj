@@ -108,6 +108,9 @@
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <AdditionalOptions>/wd"4251" /wd"4267" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +169,7 @@
     <ClCompile Include="src\optimizer.cpp" />
     <ClCompile Include="src\parameter.cpp" />
     <ClCompile Include="src\tracking.cpp" />
+    <ClCompile Include="test\ba_test.cpp" />
     <ClCompile Include="test\main.cpp" />
   </ItemGroup>
   <ItemGroup>

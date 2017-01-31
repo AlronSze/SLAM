@@ -743,7 +743,7 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
 
         //assoc.ref<unsigned char>(icluster, d) = 1;
 
-        groups[icluster].push_back(fit - descriptors.begin());
+        groups[icluster].push_back((unsigned int)(fit - descriptors.begin()));
         current_association[ fit - descriptors.begin() ] = icluster;
       }
       
@@ -899,7 +899,7 @@ void TemplatedVocabulary<TDescriptor,F>::initiateClustersKMpp(
       if(dit == min_dists.end()) 
         ifeature = pfeatures.size()-1;
       else
-        ifeature = dit - min_dists.begin();
+        ifeature = (int)(dit - min_dists.begin());
       
       clusters.push_back(*pfeatures[ifeature]);
 
@@ -1095,7 +1095,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
     if(!v.empty() && !must)
     {
       // unnecessary when normalizing
-      const double nd = v.size();
+      const double nd = (double)v.size();
       for(BowVector::iterator vit = v.begin(); vit != v.end(); vit++) 
         vit->second /= nd;
     }
@@ -1163,7 +1163,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
     if(!v.empty() && !must)
     {
       // unnecessary when normalizing
-      const double nd = v.size();
+      const double nd = (double)v.size();
       for(BowVector::iterator vit = v.begin(); vit != v.end(); vit++) 
         vit->second /= nd;
     }
@@ -1370,7 +1370,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
     (int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
     m_nodes.reserve(expected_nodes);
 
-    m_words.reserve(pow((double)m_k, (double)m_L + 1));
+    m_words.reserve((int)pow((double)m_k, (double)m_L + 1));
 
     m_nodes.resize(1);
     m_nodes[0].id = 0;
@@ -1553,7 +1553,7 @@ void TemplatedVocabulary<TDescriptor,F>::save(cv::FileStorage &f,
   typename std::vector<Node*>::const_iterator wit;
   for(wit = m_words.begin(); wit != m_words.end(); wit++)
   {
-    WordId id = wit - m_words.begin();
+    WordId id = (WordId)(wit - m_words.begin());
     f << "{:";
     f << "wordId" << (int)id;
     f << "nodeId" << (int)(*wit)->id;
