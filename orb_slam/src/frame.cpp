@@ -2,10 +2,11 @@
 
 #include <iostream>
 #include <boost/make_shared.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-#include "../3rd_part/orb-slam2/ORBextractor.h"
+#include "../inc/orb_feature.h"
 
 Frame::Frame() : id_(-1), transform_(Eigen::Isometry3d::Identity())
 {
@@ -74,8 +75,8 @@ void Frame::GetKeyPointAndDescriptor()
 	cv::Mat gray;
 	cv::cvtColor(rgb_image_, gray, CV_BGR2GRAY);
 
-	ORB_SLAM2::ORBextractor orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
-	orb(gray, cv::Mat(), key_points_, descriptors_);
+	ORBFeature orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
+	orb(gray, key_points_, descriptors_);
 
 	key_point_number_ = (int32_t)key_points_.size();
 }

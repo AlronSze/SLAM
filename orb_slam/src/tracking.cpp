@@ -132,8 +132,8 @@ bool Tracking::Relocalization()
 	std::cout << "Tracking Relocalizing..." << std::endl;
 
 	int32_t key_frame_size = (int32_t)key_frames_.size();
-	int32_t delete_frames_count = 0;
-	for (int32_t i = key_frame_size - 1; (i >= 0) && (i >= key_frame_size - 1 - 10); i--)
+	int32_t end_index = ((key_frame_size - 1 - 10) > 0) ? (key_frame_size - 1 - 10) : 0;
+	for (int32_t i = key_frame_size - 1, delete_frames_count = 0; i >= end_index; i--)
 	{
 		if (OptimizePose(key_frames_[i], *cur_frame_) < 10)
 		{

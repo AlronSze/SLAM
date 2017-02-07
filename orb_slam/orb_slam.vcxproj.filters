@@ -10,9 +10,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{c019bcdf-44bb-4f0a-99e6-58ece0dc3d4f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rd_part\orb-slam2">
-      <UniqueIdentifier>{2926135f-54f5-4035-ae10-9f5027dbc0b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="test">
       <UniqueIdentifier>{aea3eeec-f415-4389-b01d-3b477d31966c}</UniqueIdentifier>
     </Filter>
@@ -24,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="3rd_part\orb-slam2\ORBextractor.cpp">
-      <Filter>3rd_part\orb-slam2</Filter>
-    </ClCompile>
     <ClCompile Include="src\frame.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -72,11 +66,14 @@
     <ClCompile Include="test\ba_test.cpp">
       <Filter>test</Filter>
     </ClCompile>
+    <ClCompile Include="src\map_point.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\orb_feature.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="3rd_part\orb-slam2\ORBextractor.h">
-      <Filter>3rd_part\orb-slam2</Filter>
-    </ClInclude>
     <ClInclude Include="inc\frame.h">
       <Filter>inc</Filter>
     </ClInclude>
@@ -121,6 +118,12 @@
     </ClInclude>
     <ClInclude Include="3rd_part\dbow2\DUtils\Timestamp.h">
       <Filter>3rd_part\dbow2\dutils</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\map_point.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\orb_feature.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

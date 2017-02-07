@@ -24,8 +24,6 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	vertex->setFixed(false);
 	optimizer.addVertex(vertex);
 
-	std::vector<g2o::EdgeSE3ProjectXYZOnlyPose*> edges;
-
 	const int32_t image_size = (int32_t)p_image_points.size();
 	const int32_t object_size = (int32_t)p_object_points.size();
 	const double camera_fx = (double)p_camera_k.at<float>(0, 0);
@@ -33,6 +31,9 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	const double camera_cx = (double)p_camera_k.at<float>(0, 2);
 	const double camera_cy = (double)p_camera_k.at<float>(1, 2);
 	const float delta = sqrt(5.991);
+
+	std::vector<g2o::EdgeSE3ProjectXYZOnlyPose*> edges;
+	edges.reserve(object_size);
 
 	for (int32_t i = 0; i < object_size; i++)
 	{

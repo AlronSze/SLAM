@@ -134,10 +134,9 @@ void LoopClosing::AddCurFrameToGraph()
 
 void LoopClosing::LoopClose()
 {
-	int32_t frames_number = (int32_t)key_frames_.size();
-
 	std::cout << "Detecting local loop closure..." << std::endl;
 
+	int32_t frames_number = (int32_t)key_frames_.size();
 	int32_t end_index = ((frames_number - 2 - 10 + 1) >= 0) ? (frames_number - 2 - 10 + 1) : 0;
 
 	#pragma omp parallel for

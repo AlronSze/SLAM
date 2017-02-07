@@ -14,7 +14,7 @@
 #####################################################
 
 # image number
-image_number : 2859
+image_number : 1352
 
 # camera parameters cafe
 #camera:
@@ -30,30 +30,30 @@ image_number : 2859
 #  d4 : 0.0
 
 # camera parameters fr1
-#camera:
-#  fx : 517.3
-#  fy : 516.5
-#  cx : 318.6
-#  cy : 255.3
-#  scale : 5000.0
-#  d0 : 0.2624
-#  d1 : -0.9531
-#  d2 : -0.0054
-#  d3 : 0.0026
-#  d4 : 1.1633
+camera:
+  fx : 517.3
+  fy : 516.5
+  cx : 318.6
+  cy : 255.3
+  scale : 5000.0
+  d0 : 0.2624
+  d1 : -0.9531
+  d2 : -0.0054
+  d3 : 0.0026
+  d4 : 1.1633
 
 # camera parameters fr2
-camera:
-  fx : 520.9
-  fy : 521.0
-  cx : 325.1
-  cy : 249.7
-  scale : 5000.0
-  d0 : 0.2312
-  d1 : -0.7849
-  d2 : -0.0033
-  d3 : -0.0001
-  d4 : 0.9172
+#camera:
+#  fx : 520.9
+#  fy : 521.0
+#  cx : 325.1
+#  cy : 249.7
+#  scale : 5000.0
+#  d0 : 0.2312
+#  d1 : -0.7849
+#  d2 : -0.0033
+#  d3 : -0.0001
+#  d4 : 0.9172
 
 # camera parameters fr3
 #camera:
@@ -79,9 +79,9 @@ orb:
   match_threshold : 80
 
 # dataset directory
-dataset_dir : "../../Dataset/freiburg2_flowerbouquet/"
+dataset_dir : "../../Dataset/freiburg1_room/"
 
-# point cloud filter parameters
+# filter parameters
 filter:
   interval : 20
   depth_max : 4.0
@@ -91,7 +91,7 @@ pnp:
   inliers_threshold : 80
 
 # vocabulary directory
-vocabulary_dir : "" # "ORBvoc.txt"
+vocabulary_dir : "ORBvoc.txt" # "ORBvoc.txt"
 
 # dbow2 loop parameters
 dbow2:
