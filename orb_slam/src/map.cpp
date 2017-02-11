@@ -29,10 +29,10 @@ void Map::Run()
 	{
 		if (!can_draw_)
 		{
-			int32_t key_frames_size = (int32_t)key_frames_.size();
+			const int32_t key_frames_size = (int32_t)key_frames_.size();
 
 			#pragma omp parallel for
-			for (int32_t i = 0; i < key_frames_size; i++)
+			for (int32_t i = 0; i < key_frames_size; ++i)
 			{
 				// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
 				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudForWhole(key_frames_[i]);
@@ -59,8 +59,7 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>());
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr result(new pcl::PointCloud<pcl::PointXYZRGBA>());
 
-	int32_t points_number = (int32_t)p_frame.point_3d_.size();
-	for (int32_t i = 0; i < points_number; i++)
+	for (size_t i = 0, for_size = p_frame.point_3d_.size(); i < for_size; ++i)
 	{
 		if (p_frame.point_depth_[i] == 0)
 		{

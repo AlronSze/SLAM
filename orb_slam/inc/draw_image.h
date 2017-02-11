@@ -4,7 +4,8 @@
 
 #include "frame.h"
 
-class DrawImage {
+class DrawImage
+{
 public:
 	DrawImage(const std::string p_rgb_name, const std::string p_depth_name, const bool p_show_key_point = false);
 	void toDrawFrame(const Frame &p_frame, const int32_t p_wait_time);

@@ -35,7 +35,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	std::vector<g2o::EdgeSE3ProjectXYZOnlyPose*> edges;
 	edges.reserve(object_size);
 
-	for (int32_t i = 0; i < object_size; i++)
+	for (int32_t i = 0; i < object_size; ++i)
 	{
 		g2o::EdgeSE3ProjectXYZOnlyPose * edge = new g2o::EdgeSE3ProjectXYZOnlyPose();
 		edge->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(0)));
@@ -55,8 +55,9 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	}
 
 	int32_t outliers;
-	int32_t edges_size = (int32_t)edges.size();
-	for (int32_t it = 0; it < 4; it++)
+	const int32_t edges_size = (int32_t)edges.size();
+
+	for (int32_t count = 0; count < 4; ++count)
 	{
 		Eigen::Matrix3d rotation = p_transform.rotation();
 		Eigen::Vector3d translation(p_transform(0, 3), p_transform(1, 3), p_transform(2, 3));
@@ -65,7 +66,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 		optimizer.optimize(10);
 
 		outliers = 0;
-		for (int32_t i = 0; i < edges_size; i++)
+		for (int32_t i = 0; i < edges_size; ++i)
 		{
 			g2o::EdgeSE3ProjectXYZOnlyPose* edge_pose = edges[i];
 
@@ -78,7 +79,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 			{
 				p_inliers_mask[i] = false;
 				edge_pose->setLevel(1);
-				outliers++;
+				++outliers;
 			}
 			else
 			{
@@ -86,7 +87,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 				edge_pose->setLevel(0);
 			}
 
-			if (it == 2)
+			if (count == 2)
 			{
 				edge_pose->setRobustKernel(nullptr);
 			}

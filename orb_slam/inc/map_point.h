@@ -3,7 +3,8 @@
 #include <vector>
 #include <opencv2/core.hpp>
 
-class MapPoint {
+class MapPoint
+{
 public:
 	MapPoint();
 

@@ -29,7 +29,7 @@ int main()
 
 	int32_t image_number = parameter.kImageNumber_;
 
-	for (int32_t i = 1; i <= image_number; i++)
+	for (int32_t i = 1; i <= image_number; ++i)
 	{
 		std::cout << "Load image: " << i << ".png" << std::endl;
 		Frame *frame = new Frame(i, parameter);

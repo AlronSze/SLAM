@@ -6,7 +6,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-class FeatureNode {
+class FeatureNode
+{
 public:
 	FeatureNode();
 	void DivideNode(FeatureNode (&p_nodes)[4]);
@@ -21,7 +22,8 @@ public:
 	bool only_one_;
 };
 
-class ORBFeature {
+class ORBFeature
+{
 public:
 	ORBFeature(const int32_t p_features_max, const float p_scale_factor, const int32_t p_levels, const int32_t p_fast_threshold_init, const int32_t p_fast_threshold_min);
 	void operator()(cv::InputArray p_image, std::vector<cv::KeyPoint>& p_keypoints, cv::OutputArray p_descriptors);

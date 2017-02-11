@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
-//#include <opencv2/highgui/highgui.hpp> // DEBUG
 #include <opencv2/legacy/legacy.hpp>
 
 #include "../inc/optimizer.h"
@@ -84,7 +83,7 @@ void Tracking::Track()
 		}
 	}
 
-	last_key_frame_dist_++;
+	++last_key_frame_dist_;
 	last_frame_ = Frame(*cur_frame_);
 }
 
@@ -131,20 +130,20 @@ bool Tracking::Relocalization()
 {
 	std::cout << "Tracking Relocalizing..." << std::endl;
 
-	int32_t key_frame_size = (int32_t)key_frames_.size();
-	int32_t end_index = ((key_frame_size - 1 - 10) > 0) ? (key_frame_size - 1 - 10) : 0;
-	for (int32_t i = key_frame_size - 1, delete_frames_count = 0; i >= end_index; i--)
+	const size_t start_index = key_frames_.size() - 1;
+	const size_t end_index = (((int32_t)start_index - 10) > 0) ? (start_index - 10) : 0;
+	for (size_t i = start_index, delete_frames_count = 0; i >= end_index; --i)
 	{
 		if (OptimizePose(key_frames_[i], *cur_frame_) < 10)
 		{
-			delete_frames_count++;
+			++delete_frames_count;
 			continue;
 		}
 
 		std::cout << "Tracking Relocalization Succeeded!" << std::endl;
 		tracking_state_ = OK;
 
-		for (; delete_frames_count > 0; delete_frames_count--)
+		for (; delete_frames_count > 0; --delete_frames_count)
 		{
 			key_frames_.pop_back();
 			loop_closing_->PopKeyFrame();
@@ -160,10 +159,13 @@ bool Tracking::Relocalization()
 int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame)
 {
 	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
-	int32_t matches_size = (int32_t)matches.size();
-	// std::cout << "Match Number: " << matches.size() << std::endl;
+	const int32_t matches_size = (int32_t)matches.size();
+	// std::cout << "Match Number: " << matches_size << std::endl;
 	
-	if (matches_size < match_threshold_) return 0;
+	if (matches_size < match_threshold_)
+	{
+		return 0;
+	}
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
@@ -172,17 +174,23 @@ int32_t Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_fram
 	train_frame_points.reserve(matches_size);
 	match_valid_index.reserve(matches_size);
 	
-	for (int32_t i = 0; i < matches_size; i++)
+	for (int32_t i = 0; i < matches_size; ++i)
 	{
 		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
-		if (depth == 0) continue;
+		if (depth == 0)
+		{
+			continue;
+		}
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 		match_valid_index.push_back(i);
 	}
 
-	if (query_frame_points.empty()) return 0;
+	if (query_frame_points.empty())
+	{
+		return 0;
+	}
 
 	std::vector<bool> inliers_mask(match_valid_index.size(), true);
 	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, last_transform_);

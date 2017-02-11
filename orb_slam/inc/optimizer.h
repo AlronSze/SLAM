@@ -5,7 +5,8 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
-class Optimizer {
+class Optimizer
+{
 public:
 	static int32_t PnPSolver(const std::vector<cv::Point3f>& p_object_points, const std::vector<cv::Point2f>& p_image_points, const cv::Mat p_camera_k, std::vector<bool> & p_inliers_mask, Eigen::Isometry3d & p_transform);
 };

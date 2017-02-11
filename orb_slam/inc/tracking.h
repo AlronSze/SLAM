@@ -7,7 +7,8 @@
 #include "frame.h"
 #include "loop_closing.h"
 
-class Tracking {
+class Tracking
+{
 public:
 	Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing);
 
@@ -22,7 +23,8 @@ private:
 	int32_t OptimizePose(const Frame & p_query_frame, Frame & p_train_frame);
 
 private:
-	enum TrackingState {
+	enum TrackingState
+	{
 		INITIALIZE = 0,
 		OK,
 		LOST

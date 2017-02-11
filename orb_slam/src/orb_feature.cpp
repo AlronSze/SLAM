@@ -266,11 +266,11 @@ FeatureNode::FeatureNode() : only_one_(false)
 {
 }
 
-void FeatureNode::DivideNode(FeatureNode (&p_nodes)[4])
+void FeatureNode::DivideNode(FeatureNode(&p_nodes)[4])
 {
 	const int32_t half_x = (int32_t)ceil((float)(upper_right_.x - upper_left_.x) / 2);
 	const int32_t half_y = (int32_t)ceil((float)(bottom_right_.y - upper_left_.y) / 2);
-	const int32_t keypoints_size = (int32_t)keypoints_.size();
+	const size_t keypoints_size = keypoints_.size();
 
 	p_nodes[0].upper_left_ = upper_left_;
 	p_nodes[0].upper_right_ = cv::Point2i(upper_left_.x + half_x, upper_left_.y);
@@ -296,7 +296,7 @@ void FeatureNode::DivideNode(FeatureNode (&p_nodes)[4])
 	p_nodes[3].bottom_right_ = bottom_right_;
 	p_nodes[3].keypoints_.reserve(keypoints_size);
 
-	for (int32_t i = 0; i < keypoints_size; i++)
+	for (size_t i = 0; i < keypoints_size; ++i)
 	{
 		if (keypoints_[i].pt.x < p_nodes[0].upper_right_.x)
 		{
@@ -322,7 +322,7 @@ void FeatureNode::DivideNode(FeatureNode (&p_nodes)[4])
 		}
 	}
 
-	for (int32_t i = 0; i < 4; i++)
+	for (int32_t i = 0; i < 4; ++i)
 	{
 		p_nodes[i].only_one_ = (p_nodes[i].keypoints_.size() == 1) ? true : false;
 	}
@@ -335,7 +335,7 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 {
 	scale_factor_vector_.resize(levels_);
 	scale_factor_vector_[0] = 1.0f;
-	for (int32_t i = 1; i < levels_; i++)
+	for (int32_t i = 1; i < levels_; ++i)
 	{
 		scale_factor_vector_[i] = scale_factor_vector_[i - 1] * scale_factor_;
 	}
@@ -347,7 +347,7 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 	float features_per_level = features_max_ * (1 - factor) / (1 - (float)pow((double)factor, (double)levels_));
 
 	int32_t features_sum = 0;
-	for (int32_t level = 0; level < levels_ - 1; level++)
+	for (int32_t level = 0; level < levels_ - 1; ++level)
 	{
 		features_per_level_[level] = cvRound(features_per_level);
 		features_sum += features_per_level_[level];
@@ -364,16 +364,16 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 	int32_t v_min = (int32_t)ceil(kHalfPatchSize_ * sqrt(2.f) / 2);
 	const double half_patch_square = kHalfPatchSize_ * kHalfPatchSize_;
 
-	for (int32_t v = 0; v <= v_max; v++)
+	for (int32_t v = 0; v <= v_max; ++v)
 	{
 		u_max_[v] = (int32_t)round(sqrt(half_patch_square - v * v));
 	}
 
-	for (int32_t v = kHalfPatchSize_, v0 = 0; v >= v_min; v--, v0++)
+	for (int32_t v = kHalfPatchSize_, v0 = 0; v >= v_min; --v, ++v0)
 	{
 		while (u_max_[v0] == u_max_[v0 + 1])
 		{
-			v0++;
+			++v0;
 		}
 		u_max_[v] = v0;
 	}
@@ -381,25 +381,25 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 
 void ORBFeature::ComputeOrientation(const cv::Mat & p_image, std::vector<cv::KeyPoint> & p_keypoints)
 {
-	int32_t step = (int32_t)p_image.step1();
-	int32_t keypoints_size = (int32_t)p_keypoints.size();
+	const int32_t step = (int32_t)p_image.step1();
+	const int32_t keypoints_size = (int32_t)p_keypoints.size();
 
 	#pragma omp parallel for
-	for (int32_t i = 0; i < keypoints_size; i++)
+	for (int32_t i = 0; i < keypoints_size; ++i)
 	{
 		int32_t m_01 = 0, m_10 = 0;
 		const uint8_t * center = &p_image.at<uint8_t>((int32_t)round(p_keypoints[i].pt.y), (int32_t)round(p_keypoints[i].pt.x));
 
-		for (int32_t u = -kHalfPatchSize_; u <= kHalfPatchSize_; u++)
+		for (int32_t u = -kHalfPatchSize_; u <= kHalfPatchSize_; ++u)
 		{
 			m_10 += u * center[u];
 		}
 
-		for (int32_t v = 1; v <= kHalfPatchSize_; v++)
+		for (int32_t v = 1; v <= kHalfPatchSize_; ++v)
 		{
 			int32_t v_sum = 0;
 			int32_t edge = u_max_[v];
-			for (int32_t u = -edge; u <= edge; u++)
+			for (int32_t u = -edge; u <= edge; ++u)
 			{
 				int32_t val_plus = center[u + v * step], val_minus = center[u - v * step];
 				v_sum += (val_plus - val_minus);
@@ -422,7 +422,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 	std::vector<FeatureNode *> nodes_init;
 	nodes_init.resize(nodes_init_number);
 
-	for (int32_t i = 0; i < nodes_init_number; i++)
+	for (int32_t i = 0; i < nodes_init_number; ++i)
 	{
 		FeatureNode feature_node;
 		feature_node.upper_left_ = cv::Point2i((int32_t)(nodes_interval * (float)(i)), 0);
@@ -435,14 +435,12 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 		nodes_init[i] = &nodes_list.back();
 	}
 
-	int32_t distributed_keypoints_size = (int32_t)p_distributed_keypoints.size();
-	for (int32_t i = 0; i < distributed_keypoints_size; i++)
+	for (size_t i = 0, for_size = p_distributed_keypoints.size(); i < for_size; ++i)
 	{
 		nodes_init[(size_t)(p_distributed_keypoints[i].pt.x / nodes_interval)]->keypoints_.push_back(p_distributed_keypoints[i]);
 	}
 
-	std::list<FeatureNode>::iterator list_iterator = nodes_list.begin();
-	while (list_iterator != nodes_list.end())
+	for (std::list<FeatureNode>::iterator list_iterator = nodes_list.begin(), list_end = nodes_list.end(); list_iterator != list_end;)
 	{
 		if (list_iterator->keypoints_.empty())
 		{
@@ -451,34 +449,32 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 		else
 		{
 			list_iterator->only_one_ = (list_iterator->keypoints_.size() == 1) ? true : false;
-			list_iterator++;
+			++list_iterator;
 		}
 	}
 
 	std::vector<std::pair<int32_t, FeatureNode *>> nodes_size_and_pointer;
 	nodes_size_and_pointer.reserve(nodes_list.size() * 4);
 
-	bool is_finish = false;
-	while (!is_finish)
+	for (bool is_finish = false; !is_finish;)
 	{
 		int32_t pre_nodes_list_size = (int32_t)nodes_list.size();
 		int32_t to_expand = 0;
 
-		list_iterator = nodes_list.begin();
 		nodes_size_and_pointer.clear();
 
-		while (list_iterator != nodes_list.end())
+		for (std::list<FeatureNode>::iterator list_iterator = nodes_list.begin(), list_end = nodes_list.end(); list_iterator != list_end;)
 		{
 			if (list_iterator->only_one_)
 			{
-				list_iterator++;
+				++list_iterator;
 			}
 			else
 			{
 				FeatureNode feature_nodes[4];
 				list_iterator->DivideNode(feature_nodes);
 
-				for (int32_t nodes_index = 0; nodes_index < 4; nodes_index++)
+				for (int32_t nodes_index = 0; nodes_index < 4; ++nodes_index)
 				{
 					int32_t nodes_keypoints_size = (int32_t)feature_nodes[nodes_index].keypoints_.size();
 					if (nodes_keypoints_size > 0)
@@ -486,7 +482,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 						nodes_list.push_front(feature_nodes[nodes_index]);
 						if (nodes_keypoints_size > 1)
 						{
-							to_expand++;
+							++to_expand;
 							nodes_size_and_pointer.push_back(std::make_pair(nodes_keypoints_size, &nodes_list.front()));
 							nodes_list.front().iterator_ = nodes_list.begin();
 						}
@@ -512,13 +508,12 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 				nodes_size_and_pointer.clear();
 				std::sort(pre_nodes_size_and_pointer.begin(), pre_nodes_size_and_pointer.end());
 
-				int32_t pre_nodes_size_and_pointer_size = (int32_t)pre_nodes_size_and_pointer.size();
-				for (int32_t j = pre_nodes_size_and_pointer_size - 1; j >= 0; j--)
+				for (int32_t j = (int32_t)pre_nodes_size_and_pointer.size() - 1; j >= 0; --j)
 				{
 					FeatureNode feature_nodes[4];
 					pre_nodes_size_and_pointer[j].second->DivideNode(feature_nodes);
 
-					for (int32_t nodes_index = 0; nodes_index < 4; nodes_index++)
+					for (int32_t nodes_index = 0; nodes_index < 4; ++nodes_index)
 					{
 						int32_t nodes_keypoints_size = (int32_t)feature_nodes[nodes_index].keypoints_.size();
 						if (nodes_keypoints_size > 0)
@@ -552,13 +547,12 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 	std::vector<cv::KeyPoint> keypoints_result;
 	keypoints_result.reserve(features_max_);
 
-	int32_t nodes_list_size = (int32_t)nodes_list.size();
 	for (auto &list_node : nodes_list)
 	{
 		float response_max = list_node.keypoints_[0].response;
-		int32_t response_max_index = 0;
-		int32_t keypoints_size = (int32_t)list_node.keypoints_.size();
-		for (int32_t i = 1; i < keypoints_size; i++)
+		size_t response_max_index = 0;
+		size_t keypoints_size = list_node.keypoints_.size();
+		for (size_t i = 1; i < keypoints_size; ++i)
 		{
 			if (list_node.keypoints_[i].response > response_max)
 			{
@@ -577,7 +571,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 {
 	p_keypoints.resize(levels_);
 
-	for (int32_t level = 0; level < levels_; level++)
+	for (int32_t level = 0; level < levels_; ++level)
 	{
 		const int32_t border_x_min = kEdgeThreshold_ - 3;
 		const int32_t border_y_min = kEdgeThreshold_ - 3;
@@ -594,7 +588,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 		std::vector<cv::KeyPoint> distributed_keypoints;
 		distributed_keypoints.reserve(features_max_ * 10);
 
-		for (int32_t i = 0; i < rows; i++)
+		for (int32_t i = 0; i < rows; ++i)
 		{
 			float y_start = (float)(border_y_min + i * height_unit);
 			if (y_start >= (border_y_max - 3))
@@ -608,7 +602,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 				y_end = (float)border_y_max;
 			}
 
-			for (int32_t j = 0; j < columns; j++)
+			for (int32_t j = 0; j < columns; ++j)
 			{
 				float x_start = (float)(border_x_min + j * width_unit);
 				if (x_start >= (border_x_max - 6))
@@ -635,7 +629,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 				if (!keypoints_of_point.empty())
 				{
 					int32_t keypoints_of_point_size = (int32_t)keypoints_of_point.size();
-					for (int32_t k = 0; k < keypoints_of_point_size; k++)
+					for (int32_t k = 0; k < keypoints_of_point_size; ++k)
 					{
 						keypoints_of_point[k].pt.x += j * width_unit;
 						keypoints_of_point[k].pt.y += i * height_unit;
@@ -651,10 +645,10 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 			border_y_min, border_y_max, features_per_level_[level]);
 
 		const float scale_patch_size = (float)(kPatchSize_ * scale_factor_vector_[level]);
-		const int32_t keypoints_size = (int32_t)p_keypoints[level].size();
+		const int32_t keypoints_level_size = (int32_t)p_keypoints[level].size();
 
 		#pragma omp parallel for
-		for (int32_t i = 0; i < keypoints_size; i++)
+		for (int32_t i = 0; i < keypoints_level_size; ++i)
 		{
 			p_keypoints[level][i].pt.x += border_x_min;
 			p_keypoints[level][i].pt.y += border_y_min;
@@ -664,7 +658,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 	}
 
 	#pragma omp parallel for
-	for (int32_t level = 0; level < levels_; level++)
+	for (int32_t level = 0; level < levels_; ++level)
 	{
 		ComputeOrientation(image_pyramid_[level], p_keypoints[level]);
 	}
@@ -672,20 +666,20 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_key
 
 void ORBFeature::ComputeDescriptors(const cv::Mat & p_image, const std::vector<cv::KeyPoint> & p_keypoints, cv::Mat & p_descriptors)
 {
-	int32_t keypoints_size = (int32_t)p_keypoints.size();
-	p_descriptors = cv::Mat::zeros(keypoints_size, 32, CV_8UC1);
+	const int32_t keypoints_size = (int32_t)p_keypoints.size();
 	const int32_t step = (int32_t)p_image.step;
 	const float to_pi = (float)(CV_PI / 180.f);
+	p_descriptors = cv::Mat::zeros(keypoints_size, 32, CV_8UC1);
 
 	#pragma omp parallel for
-	for (int32_t count = 0; count < keypoints_size; count++)
+	for (int32_t count = 0; count < keypoints_size; ++count)
 	{
 		float angle = (float)p_keypoints[count].angle * to_pi;
 		float angle_cos = (float)cos(angle);
 		float angle_sin = (float)sin(angle);
 
 		const uint8_t * center = &p_image.at<uint8_t>(cvRound(p_keypoints[count].pt.y), cvRound(p_keypoints[count].pt.x));
-		for (int32_t i = 0, j = 0; i < 32; i++, j += 16)
+		for (int32_t i = 0, j = 0; i < 32; ++i, j += 16)
 		{
 			int32_t t0, t1, pattern_index;
 			int32_t bit_value = 0;
@@ -717,7 +711,7 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 	cv::Mat descriptors;
 
 	int32_t keypoints_sum = 0;
-	for (int32_t level = 0; level < levels_; level++)
+	for (int32_t level = 0; level < levels_; ++level)
 	{
 		keypoints_sum += (int32_t)keypoints[level].size();
 	}
@@ -735,13 +729,13 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 	p_keypoints.clear();
 	p_keypoints.reserve(keypoints_sum);
 
-	for (int32_t level = 0, offset = 0; level < levels_; level++)
+	for (int32_t level = 0, offset = 0; level < levels_; ++level)
 	{
 		int32_t keypoints_level_size = (int32_t)keypoints[level].size();
 		if (keypoints_level_size == 0) continue;
 
 		cv::Mat Gaussian_image = image_pyramid_[level].clone();
-		cv::GaussianBlur(Gaussian_image, Gaussian_image, cv::Size(7, 7), 2, 2, cv::BORDER_REFLECT_101);
+		cv::GaussianBlur(Gaussian_image, Gaussian_image, cv::Size(7, 7), 2.0, 2.0, cv::BORDER_REFLECT_101);
 
 		cv::Mat descriptor = descriptors.rowRange(offset, offset + keypoints_level_size);
 		ComputeDescriptors(Gaussian_image, keypoints[level], descriptor);
@@ -751,7 +745,7 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 		if (level != 0)
 		{
 			float scale = scale_factor_vector_[level];
-			for (int32_t i = 0; i < keypoints_level_size; i++)
+			for (int32_t i = 0; i < keypoints_level_size; ++i)
 			{
 				keypoints[level][i].pt *= scale;
 			}
@@ -763,7 +757,7 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 
 void ORBFeature::ComputePyramid(cv::Mat p_image)
 {
-	for (int32_t level = 0; level < levels_; level++)
+	for (int32_t level = 0; level < levels_; ++level)
 	{
 		float scale = 1.0f / scale_factor_vector_[level];
 		cv::Size size((int32_t)round((float)p_image.cols * scale), (int32_t)round((float)p_image.rows * scale));

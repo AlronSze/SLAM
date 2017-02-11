@@ -8,7 +8,8 @@
 
 #include "parameter.h"
 
-class Map {
+class Map
+{
 public:
 	Map(const Parameter & p_parameter);
 	void GetKeyFrames(const std::vector<Frame> & p_frame);

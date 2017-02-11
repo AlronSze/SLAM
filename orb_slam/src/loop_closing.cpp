@@ -66,7 +66,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 {
 	cur_frame_ = Frame(p_frame);
 	SetBowVector(cur_frame_);
-	frames_count_++;
+	++frames_count_;
 
 	if (key_frames_.size() != 0)
 	{
@@ -101,8 +101,7 @@ void LoopClosing::OptimizeLast()
 	//	key_frame.SetTransform(vertex->estimate());
 	//	optimized_key_frames.push_back(key_frame);
 	//}
-	int32_t key_frames_size = (int32_t)key_frames_.size();
-	for (int32_t i = 0; i < key_frames_size; i++)
+	for (size_t i = 0, for_size = key_frames_.size(); i < for_size; ++i)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
 		key_frames_[i].SetTransform(vertex->estimate());
@@ -135,12 +134,11 @@ void LoopClosing::AddCurFrameToGraph()
 void LoopClosing::LoopClose()
 {
 	std::cout << "Detecting local loop closure..." << std::endl;
-
-	int32_t frames_number = (int32_t)key_frames_.size();
-	int32_t end_index = ((frames_number - 2 - 10 + 1) >= 0) ? (frames_number - 2 - 10 + 1) : 0;
+	const int32_t start_index = (int32_t)key_frames_.size() - 2;
+	const int32_t end_index = ((start_index - 10 + 1) >= 0) ? (start_index - 10 + 1) : 0;
 
 	#pragma omp parallel for
-	for (int32_t i = frames_number - 2; i >= end_index; i--)
+	for (int32_t i = start_index; i >= end_index; i--)
 	{
 		Eigen::Isometry3d transform = cur_frame_.GetTransform();
 		if (GetPose(cur_frame_, key_frames_[i], transform) < 40)
@@ -167,37 +165,34 @@ void LoopClosing::LoopClose()
 
 	std::cout << "Detecting global loop closure..." << std::endl;
 	std::vector<Frame *> loop_frames = GetLoopFrames();
-	int32_t loop_frames_size = (int32_t)loop_frames.size();
-	if (loop_frames_size != 0)
+	const int32_t loop_frames_size = (int32_t)loop_frames.size();
+
+	#pragma omp parallel for
+	for (int32_t i = 0; i < loop_frames_size; ++i)
 	{
-		#pragma omp parallel for
-		for (int32_t i = 0; i < loop_frames_size; i++)
+		Eigen::Isometry3d transform = cur_frame_.GetTransform();
+		if (GetPose(cur_frame_, *loop_frames[i], transform) < 40)
 		{
-			Eigen::Isometry3d transform = cur_frame_.GetTransform();
-			if (GetPose(cur_frame_, *loop_frames[i], transform) < 40)
-			{
-				continue;
-			}
+			continue;
+		}
 
-			g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-			edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frames[i]->id_));
-			edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
-			edge->setMeasurement(transform);
-			edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
-			edge->setRobustKernel(new g2o::RobustKernelHuber());
-			edge->computeError();
+		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frames[i]->id_));
+		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+		edge->setMeasurement(transform);
+		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
+		edge->setRobustKernel(new g2o::RobustKernelHuber());
+		edge->computeError();
 
-			#pragma omp critical (section)
-			{
-				global_error_sum_ += edge->chi2();
-				std::cout << "Global loop closure with " << loop_frames[i]->id_ << ", error: " << edge->chi2()
-					<< ", total error: " << global_error_sum_ << std::endl;
-				optimizer_.addEdge(edge);
-			}
+		#pragma omp critical (section)
+		{
+			global_error_sum_ += edge->chi2();
+			std::cout << "Global loop closure with " << loop_frames[i]->id_ << ", error: " << edge->chi2()
+				<< ", total error: " << global_error_sum_ << std::endl;
+			optimizer_.addEdge(edge);
 		}
 	}
 
-	bool is_optimized = false;
 	std::vector<Frame> optimized_key_frames;
 	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_) || (frames_count_ >= 10))
 	{
@@ -211,8 +206,7 @@ void LoopClosing::LoopClose()
 		//	key_frame.SetTransform(vertex->estimate());
 		//	optimized_key_frames.push_back(key_frame);
 		//}
-		int32_t key_frames_size = (int32_t)key_frames_.size();
-		for (int32_t i = 0; i < key_frames_size; i++)
+		for (size_t i = 0, for_size = key_frames_.size(); i < for_size; ++i)
 		{
 			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
 			key_frames_[i].SetTransform(vertex->estimate());
@@ -222,12 +216,8 @@ void LoopClosing::LoopClose()
 		global_error_sum_ = 0.0;
 		local_error_sum_ = 0.0;
 		frames_count_ = 0;
-		is_optimized = true;
 		std::cout << "Optimized!" << std::endl;
-	}
 
-	if (is_optimized)
-	{
 		while (!map_->can_draw_);
 		map_->GetKeyFrames(optimized_key_frames);
 	}
@@ -236,10 +226,9 @@ void LoopClosing::LoopClose()
 std::vector<Frame *> LoopClosing::GetLoopFrames()
 {
 	std::vector<Frame *> result;
-	int32_t frames_number = (int32_t)key_frames_.size();
 
 	#pragma omp parallel for
-	for (int32_t i = frames_number - 2 - 10; i >= 0; i--)
+	for (int32_t i = (int32_t)key_frames_.size() - 2 - 10; i >= 0; --i)
 	{
 		double score = vocabulary_.score(cur_frame_.bow_vector, key_frames_[i].bow_vector);
 		// std::cout << "DBoW2 score with " << key_frames_[i].id_ << " : " << score << std::endl;
@@ -264,9 +253,12 @@ void LoopClosing::SetBowVector(Frame & p_frame)
 int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform)
 {
 	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
-	int32_t matches_size = (int32_t)matches.size();
+	const int32_t matches_size = (int32_t)matches.size();
 
-	if (matches_size < match_threshold_) return 0;
+	if (matches_size < match_threshold_)
+	{
+		return 0;
+	}
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
@@ -275,17 +267,23 @@ int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_
 	train_frame_points.reserve(matches_size);
 	match_valid_index.reserve(matches_size);
 
-	for (int32_t i = 0; i < matches_size; i++)
+	for (int32_t i = 0; i < matches_size; ++i)
 	{
 		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
-		if (depth == 0) continue;
+		if (depth == 0)
+		{
+			continue;
+		}
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
 		match_valid_index.push_back(i);
 	}
 
-	if (query_frame_points.empty()) return 0;
+	if (query_frame_points.empty())
+	{
+		return 0;
+	}
 	
 	std::vector<bool> inliers_mask(match_valid_index.size(), true);
 	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);

@@ -9,7 +9,8 @@
 #include "frame.h"
 #include "map.h"
 
-class LoopClosing {
+class LoopClosing
+{
 public:
 	LoopClosing(const Parameter & p_parameter, Map * p_map);
 

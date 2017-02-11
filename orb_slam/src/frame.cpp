@@ -83,17 +83,22 @@ void Frame::GetKeyPointAndDescriptor()
 
 void Frame::ComputePoint3D()
 {
-	for (int32_t i = 0; i < key_point_number_; i++)
+	point_2d_.reserve(key_point_number_);
+	point_3d_.reserve(key_point_number_);
+	point_rgb_.reserve(key_point_number_);
+	point_depth_.reserve(key_point_number_);
+
+	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
-		int32_t point_x = (int32_t)key_points_[i].pt.x;
-		int32_t point_y = (int32_t)key_points_[i].pt.y;
-		uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
+		const int32_t point_x = (int32_t)key_points_[i].pt.x;
+		const int32_t point_y = (int32_t)key_points_[i].pt.y;
+		const uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
 		if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
 		{
 			point_2d_.push_back(cv::Point2f(0, 0));
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
-			//point_rgb_.push_back(FrameRGB());
+			point_rgb_.push_back(FrameRGB());
 			point_depth_.push_back(0);
 		}
 		else
@@ -106,11 +111,11 @@ void Frame::ComputePoint3D()
 			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
 			point_3d_.push_back(point_3f);
 
-			//FrameRGB rgb;
-			//rgb.r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
-			//rgb.g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
-			//rgb.b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];
-			//point_rgb_.push_back(rgb);
+			FrameRGB rgb;
+			rgb.r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
+			rgb.g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
+			rgb.b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];
+			point_rgb_.push_back(rgb);
 
 			point_depth_.push_back(depth);
 		}
@@ -126,7 +131,7 @@ void Frame::ReleaseImage()
 std::vector<cv::Mat> Frame::GetDescriptorVector() const
 {
 	std::vector<cv::Mat> result;
-	for (int32_t i = 0; i < key_point_number_; i++)
+	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
 		result.push_back(descriptors_.row(i).clone());
 	}
@@ -145,7 +150,10 @@ void Frame::SetPointCloud()
 		for (int32_t x = 0; x < cols; x += filter_interval_)
 		{
 			uint16_t depth = depth_image_.ptr<uint16_t>(y)[x];
-			if ((depth == 0) || (depth >(uint16_t)(depth_max_ * camera_scale_))) continue;
+			if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+			{
+				continue;
+			}
 
 			pcl::PointXYZRGBA point_xyzrgb;
 
@@ -175,9 +183,12 @@ std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const 
 
 	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
 
-	for (int32_t i = 0, size = (int32_t)matches_knn.size(); i < size; i++)
+	const size_t knn_size = matches_knn.size();
+	matches.reserve(knn_size);
+
+	for (size_t i = 0; i < knn_size; ++i)
 	{
-		if (matches_knn[i][0].distance < p_match_ratio * matches_knn[i][1].distance)
+		if (matches_knn[i][0].distance < (p_match_ratio * matches_knn[i][1].distance))
 		{
 			matches.push_back(matches_knn[i][0]);
 		}
@@ -189,13 +200,13 @@ std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const 
 
 std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches)
 {
-	const int32_t matches_size = (int32_t)p_matches.size();
+	const size_t matches_size = p_matches.size();
 
 	std::vector<cv::DMatch> ransac_matches;
 	std::vector<cv::Point2f> query_points(p_matches.size());
 	std::vector<cv::Point2f> train_points(p_matches.size());
 
-	for (int32_t i = 0; i < matches_size; i++)
+	for (size_t i = 0; i < matches_size; ++i)
 	{
 		query_points[i] = p_query_frame.key_points_[p_matches[i].queryIdx].pt;
 		train_points[i] = p_train_frame.key_points_[p_matches[i].trainIdx].pt;
@@ -204,8 +215,7 @@ std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const 
 	std::vector<uint8_t> inliers_mask(matches_size);
 	cv::findFundamentalMat(query_points, train_points, inliers_mask);
 
-	int32_t inliers_size = inliers_mask.size();
-	for (int32_t i = 0; i < inliers_size; i++)
+	for (size_t i = 0, for_size = inliers_mask.size(); i < for_size; ++i)
 	{
 		if (inliers_mask[i])
 		{

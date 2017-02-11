@@ -28,7 +28,7 @@
 //	std::vector<g2o::EdgeSE3ProjectXYZ*> edges;
 //
 //	int32_t frames_size = p_frame.size();
-//	for (int32_t i = 0; i < frames_size; i++)
+//	for (int32_t i = 0; i < frames_size; ++i)
 //	{
 //		Eigen::Isometry3d transform_init = p_frame[i].GetTransform();
 //		Eigen::Matrix3d rotation_init = transform_init.rotation();
@@ -43,7 +43,7 @@
 //	const float thHuber2D = sqrt(5.991);
 //
 //	size_t map_points_size = p_frame[0].point_3d_.size();
-//	for (size_t i = 0; i < map_points_size; i++)
+//	for (size_t i = 0; i < map_points_size; ++i)
 //	{
 //		cv::Point3f point_3f = p_frame[0].point_3d_[i];
 //
@@ -74,7 +74,7 @@
 //	}
 //
 //	size_t map_points_size2 = p_frame[1].point_3d_.size();
-//	for (size_t i = 0; i < map_points_size2; i++)
+//	for (size_t i = 0; i < map_points_size2; ++i)
 //	{
 //		g2o::EdgeSE3ProjectXYZ* edge2 = new g2o::EdgeSE3ProjectXYZ();
 //		edge2->setVertex(0, dynamic_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(i + 2)));
@@ -101,13 +101,13 @@
 //	optimizer.optimize(20);
 //	optimizer.save("BA_test_after.g2o");
 //
-//	for (size_t i = 0; i < map_points_size; i++)
+//	for (size_t i = 0; i < map_points_size; ++i)
 //	{
 //		g2o::VertexSBAPointXYZ* vertex_point = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(i + 2));
 //		g2o::Vector3D result = vertex_point->estimate();
 //
 //		cv::Mat cvMat(3, 1, CV_32F);
-//		for (int i = 0; i < 3; i++)
+//		for (int i = 0; i < 3; ++i)
 //		{
 //			cvMat.at<float>(i) = result(i);
 //		}
@@ -117,13 +117,13 @@
 //
 //	int count = 0;
 //
-//	for (size_t i = 0; i < edges.size(); i++)
+//	for (size_t i = 0; i < edges.size(); ++i)
 //	{
 //		edges[i]->computeError();
 //		std::cout << "error = " << edges[i]->chi2() << std::endl;
 //		if (edges[i]->chi2() < 1)
 //		{
-//			count++;
+//			++count;
 //		}
 //	}
 //
@@ -138,7 +138,7 @@
 //	std::vector<Frame> frames;
 //	std::vector<cv::Mat> map_point;
 //
-//	for (int32_t i = 1; i <= 2; i++)
+//	for (int32_t i = 1; i <= 2; ++i)
 //	{
 //		std::cout << "Load image: " << i << ".png" << std::endl;
 //		Frame frame(i, parameter);

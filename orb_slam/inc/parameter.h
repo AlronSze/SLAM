@@ -2,7 +2,8 @@
 
 #include <string>
 
-class Parameter{
+class Parameter
+{
 public:
 	Parameter(const std::string p_yml_name);
 
@@ -14,7 +15,8 @@ public:
 	int32_t kImageNumber_;
 
 	// camera parameters
-	struct CameraParameters {
+	struct CameraParameters
+	{
 		float fx_;
 		float fy_;
 		float cx_;

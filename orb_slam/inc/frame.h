@@ -12,13 +12,15 @@
 
 #include "parameter.h"
 
-struct FrameRGB {
+struct FrameRGB
+{
 	uint8_t r_;
 	uint8_t g_;
 	uint8_t b_;
 };
 
-class Frame {
+class Frame
+{
 public:
 	Frame();
 	Frame(const Frame &p_frame);
