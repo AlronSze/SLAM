@@ -42,7 +42,7 @@ public:
 	std::string kDatasetDir_;
 
 	// point cloud filter parameters
-	float kFilterInterval_;
+	int kFilterInterval_;
 	float kFilterDepthMax_;
 
 	// pnp parameters

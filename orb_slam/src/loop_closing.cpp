@@ -131,6 +131,49 @@ void LoopClosing::AddCurFrameToGraph()
 	optimizer_.addEdge(edge);
 }
 
+void LoopClosing::ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv::DMatch> & p_matches, const std::vector<int8_t> & p_matches_flag)
+{
+	Frame & key_frame = key_frames_[p_frame_id];
+	std::vector<int8_t> train_flag(key_frame.key_point_number_, 0);
+	const int32_t matches_size = (int32_t)p_matches.size();
+	int32_t insert_id = cur_frame_.id_;
+
+	#pragma omp parallel for
+	for (int32_t i = 0; i < matches_size; ++i)
+	{
+		if (p_matches_flag[i])
+		{
+			const int32_t query_index = p_matches[i].queryIdx;
+			const int32_t train_index = p_matches[i].trainIdx;
+
+			MapPoint *const query_map_point = cur_frame_.map_points_[query_index];
+			MapPoint *const train_map_point = key_frame.map_points_[train_index];
+
+			if (query_map_point->is_bad_ || train_map_point->is_bad_)
+			{
+				continue;
+			}
+
+			#pragma omp critical (section2)
+			{
+				if (!train_flag[train_index])
+				{
+					train_flag[train_index] = 1;
+
+					train_map_point->InsertObservation(insert_id);
+					train_map_point->point_2d_ = query_map_point->point_2d_;
+					train_map_point->point_3d_ = query_map_point->point_3d_;
+					train_map_point->rgb_r_ = query_map_point->rgb_r_;
+					train_map_point->rgb_g_ = query_map_point->rgb_g_;
+					train_map_point->rgb_b_ = query_map_point->rgb_b_;
+
+					cur_frame_.map_points_[query_index] = train_map_point;
+				}
+			}
+		}
+	}
+}
+
 void LoopClosing::LoopClose()
 {
 	std::cout << "Detecting local loop closure..." << std::endl;
@@ -141,7 +184,9 @@ void LoopClosing::LoopClose()
 	for (int32_t i = start_index; i >= end_index; i--)
 	{
 		Eigen::Isometry3d transform = cur_frame_.GetTransform();
-		if (GetPose(cur_frame_, key_frames_[i], transform) < 40)
+		std::vector<cv::DMatch> matches;
+		std::vector<int8_t> matches_flag;
+		if (!GetPose(cur_frame_, key_frames_[i], transform, matches, matches_flag, 40))
 		{
 			continue;
 		}
@@ -156,6 +201,7 @@ void LoopClosing::LoopClose()
 
 		#pragma omp critical (section)
 		{
+			ModifyMapPoints(i, matches, matches_flag);
 			local_error_sum_ += edge->chi2();
 			std::cout << "Local loop closure with " << key_frames_[i].id_ << ", error: " << edge->chi2()
 				<< ", total error: " << local_error_sum_ << std::endl;
@@ -164,20 +210,23 @@ void LoopClosing::LoopClose()
 	}
 
 	std::cout << "Detecting global loop closure..." << std::endl;
-	std::vector<Frame *> loop_frames = GetLoopFrames();
-	const int32_t loop_frames_size = (int32_t)loop_frames.size();
+	std::vector<int32_t> loop_frames_index = GetLoopFrames();
+	const int32_t loop_frames_size = (int32_t)loop_frames_index.size();
 
 	#pragma omp parallel for
 	for (int32_t i = 0; i < loop_frames_size; ++i)
 	{
+		const int32_t loop_frame_index = loop_frames_index[i];
 		Eigen::Isometry3d transform = cur_frame_.GetTransform();
-		if (GetPose(cur_frame_, *loop_frames[i], transform) < 40)
+		std::vector<cv::DMatch> matches;
+		std::vector<int8_t> matches_flag;
+		if (!GetPose(cur_frame_, key_frames_[loop_frame_index], transform, matches, matches_flag, 40))
 		{
 			continue;
 		}
 
 		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(loop_frames[i]->id_));
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[loop_frame_index].id_));
 		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
 		edge->setMeasurement(transform);
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
@@ -186,8 +235,9 @@ void LoopClosing::LoopClose()
 
 		#pragma omp critical (section)
 		{
+			ModifyMapPoints(loop_frame_index, matches, matches_flag);
 			global_error_sum_ += edge->chi2();
-			std::cout << "Global loop closure with " << loop_frames[i]->id_ << ", error: " << edge->chi2()
+			std::cout << "Global loop closure with " << loop_frame_index << ", error: " << edge->chi2()
 				<< ", total error: " << global_error_sum_ << std::endl;
 			optimizer_.addEdge(edge);
 		}
@@ -223,9 +273,9 @@ void LoopClosing::LoopClose()
 	}
 }
 
-std::vector<Frame *> LoopClosing::GetLoopFrames()
+std::vector<int32_t> LoopClosing::GetLoopFrames()
 {
-	std::vector<Frame *> result;
+	std::vector<int32_t> result;
 
 	#pragma omp parallel for
 	for (int32_t i = (int32_t)key_frames_.size() - 2 - 10; i >= 0; --i)
@@ -236,7 +286,7 @@ std::vector<Frame *> LoopClosing::GetLoopFrames()
 		{
 			#pragma omp critical (section)
 			{
-				result.push_back(&key_frames_[i]);
+				result.push_back(i);
 			}
 		}
 	}
@@ -250,43 +300,105 @@ void LoopClosing::SetBowVector(Frame & p_frame)
 	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 2);
 }
 
-int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform)
+//int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform)
+//{
+//	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
+//	const int32_t matches_size = (int32_t)matches.size();
+//
+//	if (matches_size < match_threshold_)
+//	{
+//		return 0;
+//	}
+//
+//	std::vector<cv::Point3f> query_frame_points;
+//	std::vector<cv::Point2f> train_frame_points;
+//	std::vector<int32_t> match_valid_index;
+//	query_frame_points.reserve(matches_size);
+//	train_frame_points.reserve(matches_size);
+//	match_valid_index.reserve(matches_size);
+//
+//	for (int32_t i = 0; i < matches_size; ++i)
+//	{
+//		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
+//		if (depth == 0)
+//		{
+//			continue;
+//		}
+//
+//		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
+//		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
+//		match_valid_index.push_back(i);
+//	}
+//
+//	if (query_frame_points.empty())
+//	{
+//		return 0;
+//	}
+//	
+//	std::vector<int8_t> inliers_mask(match_valid_index.size(), 1);
+//	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);
+//
+//	return inliers_number;
+//}
+
+bool LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform,
+	std::vector<cv::DMatch> & p_matches, std::vector<int8_t> & p_matches_flag, const int32_t p_threshold)
 {
-	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
-	const int32_t matches_size = (int32_t)matches.size();
+	p_matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
+	int32_t matches_size = (int32_t)p_matches.size();
+	// std::cout << "Match Number: " << matches_size << std::endl;
 
 	if (matches_size < match_threshold_)
 	{
-		return 0;
+		return false;
 	}
 
 	std::vector<cv::Point3f> query_frame_points;
 	std::vector<cv::Point2f> train_frame_points;
-	std::vector<int32_t> match_valid_index;
 	query_frame_points.reserve(matches_size);
 	train_frame_points.reserve(matches_size);
-	match_valid_index.reserve(matches_size);
+
+	std::vector<int32_t> matches_valid;
+	matches_valid.reserve(matches_size);
 
 	for (int32_t i = 0; i < matches_size; ++i)
 	{
-		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
+		uint16_t depth = p_query_frame.point_depth_[p_matches[i].queryIdx];
 		if (depth == 0)
 		{
 			continue;
 		}
 
-		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
-		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
-		match_valid_index.push_back(i);
+		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[p_matches[i].queryIdx]));
+		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[p_matches[i].trainIdx].pt));
+		matches_valid.push_back(i);
 	}
 
-	if (query_frame_points.empty())
+	int32_t matches_valid_size = (int32_t)matches_valid.size();
+	if (matches_valid_size == 0)
 	{
-		return 0;
+		return false;
 	}
-	
-	std::vector<bool> inliers_mask(match_valid_index.size(), true);
-	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);
 
-	return inliers_number;
+	std::vector<int8_t> inliers_mask(matches_valid_size, 1);
+	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);
+	// std::cout << "Inliers Number: " << inliers_number << std::endl;
+
+	if (inliers_number < p_threshold)
+	{
+		return false;
+	}
+
+	p_matches_flag.resize(matches_size, 0);
+
+	#pragma omp parallel for
+	for (int32_t i = 0; i < matches_valid_size; ++i)
+	{
+		if (inliers_mask[i])
+		{
+			p_matches_flag[matches_valid[i]] = 1;
+		}
+	}
+
+	return true;
 }

@@ -7,7 +7,7 @@
 #include <g2o/solvers/dense/linear_solver_dense.h>
 #include <g2o/types/sba/types_six_dof_expmap.h>
 
-int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const std::vector<cv::Point2f>& p_image_points, const cv::Mat p_camera_k, std::vector<bool> & p_inliers_mask, Eigen::Isometry3d & p_transform)
+int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, const std::vector<cv::Point2f>& p_image_points, const cv::Mat p_camera_k, std::vector<int8_t> & p_inliers_mask, Eigen::Isometry3d & p_transform)
 {
 	g2o::SparseOptimizer optimizer;
 	g2o::BlockSolver_6_3::LinearSolverType * linear_solver = new g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>();
@@ -66,6 +66,8 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 		optimizer.optimize(10);
 
 		outliers = 0;
+
+		#pragma omp parallel for
 		for (int32_t i = 0; i < edges_size; ++i)
 		{
 			g2o::EdgeSE3ProjectXYZOnlyPose* edge_pose = edges[i];
@@ -77,13 +79,13 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 
 			if (edge_pose->chi2() > 5.991)
 			{
-				p_inliers_mask[i] = false;
+				p_inliers_mask[i] = 0;
 				edge_pose->setLevel(1);
 				++outliers;
 			}
 			else
 			{
-				p_inliers_mask[i] = true;
+				p_inliers_mask[i] = 1;
 				edge_pose->setLevel(0);
 			}
 

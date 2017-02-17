@@ -360,8 +360,8 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 
 	u_max_.resize(kHalfPatchSize_ + 1);
 
-	int32_t v_max = (int32_t)floor(kHalfPatchSize_ * sqrt(2.f) / 2 + 1);
-	int32_t v_min = (int32_t)ceil(kHalfPatchSize_ * sqrt(2.f) / 2);
+	const int32_t v_max = (int32_t)floor(kHalfPatchSize_ * sqrt(2.f) / 2 + 1);
+	const int32_t v_min = (int32_t)ceil(kHalfPatchSize_ * sqrt(2.f) / 2);
 	const double half_patch_square = kHalfPatchSize_ * kHalfPatchSize_;
 
 	for (int32_t v = 0; v <= v_max; ++v)
@@ -401,9 +401,10 @@ void ORBFeature::ComputeOrientation(const cv::Mat & p_image, std::vector<cv::Key
 			int32_t edge = u_max_[v];
 			for (int32_t u = -edge; u <= edge; ++u)
 			{
-				int32_t val_plus = center[u + v * step], val_minus = center[u - v * step];
-				v_sum += (val_plus - val_minus);
-				m_10 += u * (val_plus + val_minus);
+				int32_t value_plus = center[u + v * step];
+				int32_t value_minus = center[u - v * step];
+				v_sum += (value_plus - value_minus);
+				m_10 += u * (value_plus + value_minus);
 			}
 			m_01 += v * v_sum;
 		}

@@ -2,6 +2,8 @@
 
 #include <windows.h>
 
+#include "../inc/map_point.h"
+
 Map::Map(const Parameter & p_parameter) : can_draw_(true)
 {
 	camera_fx_ = p_parameter.kCameraParameters_.fx_;
@@ -34,8 +36,8 @@ void Map::Run()
 			#pragma omp parallel for
 			for (int32_t i = 0; i < key_frames_size; ++i)
 			{
-				// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
-				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudForWhole(key_frames_[i]);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
+				// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudForWhole(key_frames_[i]);
 
 				#pragma omp critical (section)
 				{
@@ -59,30 +61,32 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(new pcl::PointCloud<pcl::PointXYZRGBA>());
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr result(new pcl::PointCloud<pcl::PointXYZRGBA>());
 
-	for (size_t i = 0, for_size = p_frame.point_3d_.size(); i < for_size; ++i)
+	const int32_t frame_id = p_frame.id_;
+
+	for (size_t i = 0, for_size = p_frame.map_points_.size(); i < for_size; ++i)
 	{
-		if (p_frame.point_depth_[i] == 0)
+		MapPoint * map_point = p_frame.map_points_[i];
+
+		if (map_point->is_bad_ || (map_point->best_id_ != frame_id))
 		{
 			continue;
 		}
 
 		pcl::PointXYZRGBA point_xyzrgb;
 
-		cv::Point3f point_3f = p_frame.point_3d_[i];
+		cv::Point3f point_3f = map_point->point_3d_;
 		point_xyzrgb.x = point_3f.x;
 		point_xyzrgb.y = point_3f.y;
 		point_xyzrgb.z = point_3f.z;
-
-		FrameRGB rgb = p_frame.point_rgb_[i];
-		point_xyzrgb.r = rgb.r_;
-		point_xyzrgb.g = rgb.g_;
-		point_xyzrgb.b = rgb.b_;
+		point_xyzrgb.r = map_point->rgb_r_;
+		point_xyzrgb.g = map_point->rgb_g_;
+		point_xyzrgb.b = map_point->rgb_b_;
 
 		temp->points.push_back(point_xyzrgb);
 	}
 
-	Eigen::Isometry3d T = p_frame.GetTransform();
-	pcl::transformPointCloud(*temp, *result, T.matrix());
+	Eigen::Isometry3d transform = p_frame.GetTransform();
+	pcl::transformPointCloud(*temp, *result, transform.matrix());
 	result->is_dense = false;
 
 	return result;
@@ -91,11 +95,11 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloud(const Frame & p_frame
 pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudForWhole(const Frame & p_frame)
 {
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr result(new pcl::PointCloud<pcl::PointXYZRGBA>());
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(p_frame.point_cloud_);
+	//pcl::PointCloud<pcl::PointXYZRGBA>::Ptr temp(p_frame.point_cloud_);
 
-	Eigen::Isometry3d T = p_frame.GetTransform();
-	pcl::transformPointCloud(*temp, *result, T.matrix());
-	result->is_dense = false;
+	//Eigen::Isometry3d transform = p_frame.GetTransform();
+	//pcl::transformPointCloud(*temp, *result, transform.matrix());
+	//result->is_dense = false;
 
 	return result;
 }
