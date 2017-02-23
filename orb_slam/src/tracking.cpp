@@ -73,7 +73,7 @@ void Tracking::ModifyMapPoints()
 				continue;
 			}
 
-			query_map_point->InsertObservation(cur_frame_->id_);
+			query_map_point->InsertObservation(cur_frame_->id_, train_index);
 			query_map_point->point_2d_ = train_map_point->point_2d_;
 			query_map_point->point_3d_ = train_map_point->point_3d_;
 			query_map_point->rgb_r_ = train_map_point->rgb_r_;
@@ -82,7 +82,7 @@ void Tracking::ModifyMapPoints()
 
 			#pragma omp critical (section)
 			{
-				if (!train_flag[train_index])
+				if (train_flag[train_index] == 0)
 				{
 					train_flag[train_index] = 1;
 					delete cur_frame_->map_points_[train_index];
@@ -104,6 +104,7 @@ void Tracking::Track()
 		{
 			std::cout << "Insert New Key Frame, number: 1" << std::endl;
 			cur_frame_->InitializeMapPoints();
+			// cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			UpdateKeyFrames();
 		}
@@ -124,6 +125,7 @@ void Tracking::Track()
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
 			cur_frame_->InitializeMapPoints();
+			// cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			ModifyMapPoints();
 			UpdateKeyFrames();
@@ -236,7 +238,7 @@ bool Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, 
 		}
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[cur_matches_[i].queryIdx]));
-		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[cur_matches_[i].trainIdx].pt));
+		train_frame_points.push_back(cv::Point2f(p_train_frame.point_2d_[cur_matches_[i].trainIdx]));
 		matches_valid.push_back(i);
 	}
 

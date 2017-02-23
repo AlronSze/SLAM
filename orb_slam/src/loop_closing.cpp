@@ -111,7 +111,16 @@ void LoopClosing::OptimizeLast()
 	std::cout << "Optimized!" << std::endl;
 
 	while (!map_->can_draw_);
-	map_->GetKeyFrames(optimized_key_frames);
+	map_->GetKeyFrames(optimized_key_frames, false);
+	while (!map_->can_draw_);
+
+	std::cout << "Bundle Adjustment..." << std::endl;
+	Optimizer::BundleAdjustment(optimized_key_frames);
+	std::cout << "Bundle Adjustment Finished!" << std::endl;
+
+	while (!map_->can_draw_);
+	map_->GetKeyFrames(optimized_key_frames, true);
+	while (!map_->can_draw_);
 }
 
 void LoopClosing::AddCurFrameToGraph()
@@ -160,7 +169,7 @@ void LoopClosing::ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv
 				{
 					train_flag[train_index] = 1;
 
-					train_map_point->InsertObservation(insert_id);
+					train_map_point->InsertObservation(insert_id, query_index);
 					train_map_point->point_2d_ = query_map_point->point_2d_;
 					train_map_point->point_3d_ = query_map_point->point_3d_;
 					train_map_point->rgb_r_ = query_map_point->rgb_r_;
@@ -269,7 +278,7 @@ void LoopClosing::LoopClose()
 		std::cout << "Optimized!" << std::endl;
 
 		while (!map_->can_draw_);
-		map_->GetKeyFrames(optimized_key_frames);
+		map_->GetKeyFrames(optimized_key_frames, false);
 	}
 }
 
@@ -370,7 +379,7 @@ bool LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_fra
 		}
 
 		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[p_matches[i].queryIdx]));
-		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[p_matches[i].trainIdx].pt));
+		train_frame_points.push_back(cv::Point2f(p_train_frame.point_2d_[p_matches[i].trainIdx]));
 		matches_valid.push_back(i);
 	}
 

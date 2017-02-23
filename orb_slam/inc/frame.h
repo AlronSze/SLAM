@@ -5,8 +5,8 @@
 #include <Eigen/Dense>
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
-//#include <pcl/common/transforms.h>
-//#include <pcl/point_types.h>
+#include <pcl/common/transforms.h>
+#include <pcl/point_types.h>
 
 #include "../3rd_part/dbow2/BowVector.h"
 
@@ -24,7 +24,7 @@ public:
 	void GetKeyPointAndDescriptor();
 	void ComputePoint3D();
 	void InitializeMapPoints();
-	//void SetPointCloud();
+	void SetPointCloud();
 	void ReleaseImage();
 	std::vector<cv::Mat> GetDescriptorVector() const;
 	inline cv::Point2f GetPoint2D(const int32_t p_index) const;
@@ -57,7 +57,7 @@ public:
 	std::vector<cv::Point3f> point_3d_;
 	std::vector<uint16_t> point_depth_;
 
-	//pcl::PointCloud<pcl::PointXYZRGBA>::Ptr point_cloud_;
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr point_cloud_;
 
 private:
 	int32_t orb_features_max_;

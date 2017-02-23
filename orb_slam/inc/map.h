@@ -12,15 +12,17 @@ class Map
 {
 public:
 	Map(const Parameter & p_parameter);
-	void GetKeyFrames(const std::vector<Frame> & p_frame);
+	void GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_flag);
 	void Run();
 
 private:
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloud(const Frame & p_frame);
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudForWhole(const Frame & p_frame);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudOfWorldPoints(const Frame & p_frame);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudOfWhole(const Frame & p_frame);
 
 public:
 	bool can_draw_;
+	bool draw_world_points_;
 	float camera_fx_;
 	float camera_fy_;
 	float camera_cx_;

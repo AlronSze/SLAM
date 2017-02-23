@@ -44,7 +44,6 @@ int main()
 	}
 
 	loop_closing.OptimizeLast();
-	while (!map->can_draw_);
 
 	std::cout << "Press any key to shut down SLAM." << std::endl;
 	getchar();

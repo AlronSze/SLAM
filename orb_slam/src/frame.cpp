@@ -1,7 +1,7 @@
 #include "../inc/frame.h"
 
 #include <iostream>
-//#include <boost/make_shared.hpp>
+#include <boost/make_shared.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/legacy/legacy.hpp>
@@ -19,7 +19,7 @@ Frame::Frame(const Frame & p_frame) :
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
 	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
 	camera_scale_(p_frame.camera_scale_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector), depth_max_(p_frame.depth_max_),
-	filter_interval_(p_frame.filter_interval_), point_2d_(p_frame.point_2d_), map_points_(p_frame.map_points_)//, point_cloud_(p_frame.point_cloud_)
+	filter_interval_(p_frame.filter_interval_), point_2d_(p_frame.point_2d_), map_points_(p_frame.map_points_), point_cloud_(p_frame.point_cloud_)
 {
 }
 
@@ -120,31 +120,25 @@ void Frame::InitializeMapPoints()
 
 	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
-		const int32_t point_x = (int32_t)key_points_[i].pt.x;
-		const int32_t point_y = (int32_t)key_points_[i].pt.y;
-		const uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
-
 		MapPoint * map_point = new MapPoint();
 
-		if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+		if (point_depth_[i] == 0)
 		{
 			map_point->is_bad_ = true;
 		}
 		else
 		{
-			map_point->point_2d_ = cv::Point2f((float)point_x, (float)point_y);
+			map_point->point_2d_ = point_2d_[i];
+			map_point->point_3d_ = point_3d_[i];
 
-			cv::Point3f point_3f;
-			point_3f.z = (float)depth / camera_scale_;
-			point_3f.x = ((float)point_x - camera_cx_) * point_3f.z / camera_fx_;
-			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
-			map_point->point_3d_ = point_3f;
+			const int32_t point_x = (int32_t)point_2d_[i].x;
+			const int32_t point_y = (int32_t)point_2d_[i].y;
 
 			map_point->rgb_r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
 			map_point->rgb_g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
 			map_point->rgb_b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];
 
-			map_point->InsertObservation(id_);
+			map_point->InsertObservation(id_, i);
 		}
 
 		map_points_.push_back(map_point);
@@ -167,42 +161,42 @@ std::vector<cv::Mat> Frame::GetDescriptorVector() const
 	return result;
 }
 
-//void Frame::SetPointCloud()
-//{
-//	point_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA>>();
-//
-//	const int32_t rows = depth_image_.rows;
-//	const int32_t cols = depth_image_.cols;
-//
-//	for (int32_t y = 0; y < rows; y += filter_interval_)
-//	{
-//		for (int32_t x = 0; x < cols; x += filter_interval_)
-//		{
-//			uint16_t depth = depth_image_.ptr<uint16_t>(y)[x];
-//			if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
-//			{
-//				continue;
-//			}
-//
-//			pcl::PointXYZRGBA point_xyzrgb;
-//
-//			cv::Point3f point_3f;
-//			point_3f.z = (float)depth / camera_scale_;
-//			point_3f.x = ((float)x - camera_cx_) * point_3f.z / camera_fx_;
-//			point_3f.y = ((float)y - camera_cy_) * point_3f.z / camera_fy_;
-//
-//			point_xyzrgb.b = rgb_image_.ptr<uint8_t>(y)[x * 3];
-//			point_xyzrgb.g = rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
-//			point_xyzrgb.r = rgb_image_.ptr<uint8_t>(y)[x * 3 + 2];
-//
-//			point_xyzrgb.x = point_3f.x;
-//			point_xyzrgb.y = point_3f.y;
-//			point_xyzrgb.z = point_3f.z;
-//
-//			point_cloud_->points.push_back(point_xyzrgb);
-//		}
-//	}
-//}
+void Frame::SetPointCloud()
+{
+	point_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA>>();
+
+	const int32_t rows = depth_image_.rows;
+	const int32_t cols = depth_image_.cols;
+
+	for (int32_t y = 0; y < rows; y += filter_interval_)
+	{
+		for (int32_t x = 0; x < cols; x += filter_interval_)
+		{
+			uint16_t depth = depth_image_.ptr<uint16_t>(y)[x];
+			if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+			{
+				continue;
+			}
+
+			pcl::PointXYZRGBA point_xyzrgb;
+
+			cv::Point3f point_3f;
+			point_3f.z = (float)depth / camera_scale_;
+			point_3f.x = ((float)x - camera_cx_) * point_3f.z / camera_fx_;
+			point_3f.y = ((float)y - camera_cy_) * point_3f.z / camera_fy_;
+
+			point_xyzrgb.b = rgb_image_.ptr<uint8_t>(y)[x * 3];
+			point_xyzrgb.g = rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
+			point_xyzrgb.r = rgb_image_.ptr<uint8_t>(y)[x * 3 + 2];
+
+			point_xyzrgb.x = point_3f.x;
+			point_xyzrgb.y = point_3f.y;
+			point_xyzrgb.z = point_3f.z;
+
+			point_cloud_->points.push_back(point_xyzrgb);
+		}
+	}
+}
 
 std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio)
 {
