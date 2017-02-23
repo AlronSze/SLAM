@@ -1,6 +1,7 @@
 #include "../inc/map.h"
 
 #include <windows.h>
+#include <pcl/io/pcd_io.h>
 
 #include "../inc/map_point.h"
 
@@ -47,6 +48,8 @@ void Map::Run()
 						*global_cloud += *new_cloud;
 					}
 				}
+
+				viewer.showCloud(global_cloud);
 			}
 			else
 			{
@@ -60,9 +63,9 @@ void Map::Run()
 						*global_cloud += *new_cloud;
 					}
 				}
-			}
 
-			viewer.showCloud(global_cloud);
+				pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud);
+			}
 
 			global_cloud->clear();
 			key_frames_.clear();

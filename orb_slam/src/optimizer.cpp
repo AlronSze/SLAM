@@ -50,7 +50,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 		edge->cx = camera_cx;
 		edge->cy = camera_cy;
 		edge->Xw = Eigen::Vector3d(p_object_points[i].x, p_object_points[i].y, p_object_points[i].z);
-		edge->setInformation(Eigen::Matrix2d::Identity() * 1);
+		edge->setInformation(Eigen::Matrix2d::Identity());
 		g2o::RobustKernelHuber* robust_kernel = new g2o::RobustKernelHuber();
 		edge->setRobustKernel(robust_kernel);
 		robust_kernel->setDelta(delta);
@@ -67,7 +67,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 		Eigen::Matrix3d rotation = p_transform.rotation();
 		Eigen::Vector3d translation(p_transform(0, 3), p_transform(1, 3), p_transform(2, 3));
 		vertex->setEstimate(g2o::SE3Quat(rotation, translation));
-		optimizer.initializeOptimization();
+		optimizer.initializeOptimization(0);
 		optimizer.optimize(10);
 
 		outliers = 0;
@@ -149,6 +149,10 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		frame_id_to_index.insert(std::make_pair(p_frames[i].id_, i));
 	}
 
+	std::vector<g2o::EdgeSE3ProjectXYZ *> edges;
+	//std::vector<cv::Point3f> points_origin; // Del
+	//std::vector<cv::Point3f> points_after; // Del
+
 	for (int32_t i = 0, ba_point_count = 0; i < frames_size; ++i)
 	{
 		Frame & cur_frame = p_frames[i];
@@ -177,6 +181,8 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 				vertex->setId(point_id);
 				vertex->setMarginalized(true);
 				optimizer.addVertex(vertex);
+
+				//points_origin.push_back(cv::Point3f((float)point_3d.x, (float)point_3d.y, (float)point_3d.z)); // Del
 				
 				for (auto mit : cur_map_point->observation_id_)
 				{
@@ -197,6 +203,7 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 					edge->cy = camera_cy;
 
 					optimizer.addEdge(edge);
+					edges.push_back(edge);
 				}
 
 				++ba_point_count;
@@ -204,7 +211,26 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		}
 	}
 
-	std::cout << "DEBUG: Bundle Adjustment Optimizing..." << std::endl;
+	int32_t outliers = 0;
+
+	for (int32_t i = 0, for_size = (int32_t)edges.size(); i < for_size; ++i)
+	{
+		edges[i]->computeError();
+
+		if (edges[i]->chi2() > 5.991)
+		{
+			edges[i]->setLevel(1);
+			++outliers;
+		}
+		else
+		{
+			edges[i]->setLevel(0);
+		}
+	}
+
+	std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
+
+	std::cout << "Optimizing..." << std::endl;
 	optimizer.initializeOptimization();
 	optimizer.optimize(20);
 
@@ -231,8 +257,24 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 				cv::Point3f point_3f((float)estimate_xyz(0), (float)estimate_xyz(1), (float)estimate_xyz(2));
 				cur_map_point->point_world_ = point_3f;
 
+				//points_after.push_back(point_3f); // Del
+
 				++ba_point_count;
 			}
 		}
 	}
+
+	//int32_t outliers = 0;
+
+	//for (auto edge : edges)
+	//{
+	//	edge->computeError();
+
+	//	if (edge->chi2() > 5.991)
+	//	{
+	//		++outliers;
+	//	}
+	//}
+
+	//std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
 }

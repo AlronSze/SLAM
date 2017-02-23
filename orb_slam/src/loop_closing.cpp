@@ -82,6 +82,9 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		vertex->setEstimate(Eigen::Isometry3d::Identity());
 		vertex->setFixed(true);
 		optimizer_.addVertex(vertex);
+
+		while (!map_->can_draw_);
+		map_->GetKeyFrames(key_frames_, false);
 	}
 
 	SaveG2OFile("tracking.g2o");
