@@ -104,7 +104,7 @@ void Tracking::Track()
 		{
 			std::cout << "Insert New Key Frame, number: 1" << std::endl;
 			cur_frame_->InitializeMapPoints();
-			// cur_frame_->SetPointCloud();
+			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			UpdateKeyFrames();
 		}
@@ -125,7 +125,7 @@ void Tracking::Track()
 		{
 			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
 			cur_frame_->InitializeMapPoints();
-			// cur_frame_->SetPointCloud();
+			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			ModifyMapPoints();
 			UpdateKeyFrames();
@@ -228,7 +228,9 @@ bool Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, 
 
 	std::vector<int32_t> matches_valid;
 	matches_valid.reserve(cur_matches_size_);
-	
+
+	//Eigen::Matrix4d transform = p_query_frame.GetTransform().matrix();
+
 	for (int32_t i = 0; i < cur_matches_size_; ++i)
 	{
 		uint16_t depth = p_query_frame.point_depth_[cur_matches_[i].queryIdx];
@@ -237,7 +239,13 @@ bool Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, 
 			continue;
 		}
 
-		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[cur_matches_[i].queryIdx]));
+		cv::Point3f points_camera(p_query_frame.point_3d_[cur_matches_[i].queryIdx]);
+		//cv::Point3f points_world;
+		//points_world.x = (float)(transform(0, 0) * (double)points_camera.x + transform(0, 1) * (double)points_camera.y + transform(0, 2) * (double)points_camera.z + transform(0, 3));
+		//points_world.y = (float)(transform(1, 0) * (double)points_camera.x + transform(1, 1) * (double)points_camera.y + transform(1, 2) * (double)points_camera.z + transform(1, 3));
+		//points_world.z = (float)(transform(2, 0) * (double)points_camera.x + transform(2, 1) * (double)points_camera.y + transform(2, 2) * (double)points_camera.z + transform(2, 3));
+
+		query_frame_points.push_back(points_camera);
 		train_frame_points.push_back(cv::Point2f(p_train_frame.point_2d_[cur_matches_[i].trainIdx]));
 		matches_valid.push_back(i);
 	}

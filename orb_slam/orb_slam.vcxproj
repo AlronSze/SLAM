@@ -82,6 +82,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>F:\DevTools\PCL_1_8_0\3rdParty\VTK\include\vtk-7.0;F:\DevTools\PCL_1_8_0\include\pcl-1.8;F:\DevTools\PCL_1_8_0\3rdParty\Boost\include\boost-1_61;F:\DevTools\PCL_1_8_0\3rdParty\Eigen\eigen3;F:\DevTools\g2o-orbslam;F:\DevTools\OpenCV\opencv_2_4_13_2\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\DevTools\PCL_1_8_0\3rdParty\Boost\lib;F:\DevTools\PCL_1_8_0\lib;F:\DevTools\g2o-orbslam\bin\Release;F:\DevTools\OpenCV\opencv_2_4_13_2\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -144,14 +146,16 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opencv_calib3d2413.lib;opencv_core2413.lib;opencv_features2d2413.lib;opencv_highgui2413.lib;opencv_imgproc2413.lib;opencv_legacy2413.lib;g2o_calibration_odom_laser.lib;g2o_cli.lib;g2o_core.lib;g2o_csparse_extension.lib;g2o_ext_csparse.lib;g2o_ext_freeglut_minimal.lib;g2o_hierarchical.lib;g2o_interface.lib;g2o_opengl_helper.lib;g2o_parser.lib;g2o_solver_csparse.lib;g2o_solver_dense.lib;g2o_solver_eigen.lib;g2o_solver_pcg.lib;g2o_solver_slam2d_linear.lib;g2o_solver_structure_only.lib;g2o_stuff.lib;g2o_tutorial_slam2d.lib;g2o_types_data.lib;g2o_types_icp.lib;g2o_types_sba.lib;g2o_types_sclam2d.lib;g2o_types_sim3.lib;g2o_types_slam2d_addons.lib;g2o_types_slam2d.lib;g2o_types_slam3d_addons.lib;g2o_types_slam3d.lib;g2o_viewer.lib;pcl_visualization_release.lib;pcl_common_release.lib;pcl_io_release.lib;libboost_thread-vc140-mt-gd-1_61.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -181,7 +185,7 @@
     <ClInclude Include="3rd_part\dbow2\FeatureVector.h" />
     <ClInclude Include="3rd_part\dbow2\FORB.h" />
     <ClInclude Include="3rd_part\dbow2\ScoringObject.h" />
-    <ClInclude Include="3rd_part\dbow2\templatedvocabulary.h" />
+    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h" />
     <ClInclude Include="inc\draw_image.h" />
     <ClInclude Include="inc\frame.h" />
     <ClInclude Include="inc\loop_closing.h" />

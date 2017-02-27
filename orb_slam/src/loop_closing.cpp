@@ -1,5 +1,13 @@
 #include "../inc/loop_closing.h"
 
+#ifdef _WIN32
+	#include <windows.h>
+	#define thread_sleep(x) Sleep(x)
+#elif __linux__
+	#include <unistd.h>
+	#define thread_sleep(x) usleep(x)
+#endif
+
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/core/robust_kernel_impl.h>
@@ -73,6 +81,15 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		AddCurFrameToGraph();
 		LoopClose();
 		key_frames_.push_back(cur_frame_);
+
+		//if (frames_count_ >= 10)
+		//{
+		//	frames_count_ = 0;
+		//	if (!map_->can_draw_)
+		//	{
+		//		map_->GetKeyFrames(key_frames_, false);
+		//	}
+		//}
 	}
 	else
 	{
@@ -83,7 +100,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		vertex->setFixed(true);
 		optimizer_.addVertex(vertex);
 
-		while (!map_->can_draw_);
+		while (!map_->can_draw_) { thread_sleep(1); }
 		map_->GetKeyFrames(key_frames_, false);
 	}
 
@@ -98,12 +115,6 @@ void LoopClosing::OptimizeLast()
 	optimizer_.initializeOptimization();
 	optimizer_.optimize(10);
 
-	//for (auto key_frame : key_frames_)
-	//{
-	//	g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frame.id_));
-	//	key_frame.SetTransform(vertex->estimate());
-	//	optimized_key_frames.push_back(key_frame);
-	//}
 	for (size_t i = 0, for_size = key_frames_.size(); i < for_size; ++i)
 	{
 		g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
@@ -113,17 +124,17 @@ void LoopClosing::OptimizeLast()
 
 	std::cout << "Optimized!" << std::endl;
 
-	while (!map_->can_draw_);
+	while (!map_->can_draw_) { thread_sleep(1); }
 	map_->GetKeyFrames(optimized_key_frames, false);
-	while (!map_->can_draw_);
+	while (!map_->can_draw_) { thread_sleep(1); }
 
 	std::cout << "Bundle Adjustment..." << std::endl;
 	Optimizer::BundleAdjustment(optimized_key_frames);
 	std::cout << "Bundle Adjustment Finished!" << std::endl;
 
-	while (!map_->can_draw_);
+	while (!map_->can_draw_) { thread_sleep(1); }
 	map_->GetKeyFrames(optimized_key_frames, true);
-	while (!map_->can_draw_);
+	while (!map_->can_draw_) { thread_sleep(1); }
 }
 
 void LoopClosing::AddCurFrameToGraph()
@@ -262,12 +273,6 @@ void LoopClosing::LoopClose()
 		optimizer_.initializeOptimization();
 		optimizer_.optimize(10);
 
-		//for (auto key_frame : key_frames_)
-		//{
-		//	g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frame.id_));
-		//	key_frame.SetTransform(vertex->estimate());
-		//	optimized_key_frames.push_back(key_frame);
-		//}
 		for (size_t i = 0, for_size = key_frames_.size(); i < for_size; ++i)
 		{
 			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
@@ -280,8 +285,10 @@ void LoopClosing::LoopClose()
 		frames_count_ = 0;
 		std::cout << "Optimized!" << std::endl;
 
-		while (!map_->can_draw_);
-		map_->GetKeyFrames(optimized_key_frames, false);
+		if (map_->can_draw_)
+		{
+			map_->GetKeyFrames(optimized_key_frames, false);
+		}
 	}
 }
 
@@ -311,47 +318,6 @@ void LoopClosing::SetBowVector(Frame & p_frame)
 	DBoW2::FeatureVector feature_vector;
 	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 2);
 }
-
-//int32_t LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform)
-//{
-//	std::vector<cv::DMatch> matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
-//	const int32_t matches_size = (int32_t)matches.size();
-//
-//	if (matches_size < match_threshold_)
-//	{
-//		return 0;
-//	}
-//
-//	std::vector<cv::Point3f> query_frame_points;
-//	std::vector<cv::Point2f> train_frame_points;
-//	std::vector<int32_t> match_valid_index;
-//	query_frame_points.reserve(matches_size);
-//	train_frame_points.reserve(matches_size);
-//	match_valid_index.reserve(matches_size);
-//
-//	for (int32_t i = 0; i < matches_size; ++i)
-//	{
-//		uint16_t depth = p_query_frame.point_depth_[matches[i].queryIdx];
-//		if (depth == 0)
-//		{
-//			continue;
-//		}
-//
-//		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[matches[i].queryIdx]));
-//		train_frame_points.push_back(cv::Point2f(p_train_frame.key_points_[matches[i].trainIdx].pt));
-//		match_valid_index.push_back(i);
-//	}
-//
-//	if (query_frame_points.empty())
-//	{
-//		return 0;
-//	}
-//	
-//	std::vector<int8_t> inliers_mask(match_valid_index.size(), 1);
-//	int32_t inliers_number = Optimizer::PnPSolver(query_frame_points, train_frame_points, camera_K_, inliers_mask, p_transform);
-//
-//	return inliers_number;
-//}
 
 bool LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform,
 	std::vector<cv::DMatch> & p_matches, std::vector<int8_t> & p_matches_flag, const int32_t p_threshold)

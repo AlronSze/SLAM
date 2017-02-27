@@ -30,7 +30,7 @@ public:
 
 private:
 	void ComputePyramid(cv::Mat p_image);
-	void ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & allKeypoints);
+	void ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint> > & allKeypoints);
 	void ComputeOrientation(const cv::Mat & p_image, std::vector<cv::KeyPoint> & p_keypoints);
 	void ComputeDescriptors(const cv::Mat & p_image, const std::vector<cv::KeyPoint> & p_keypoints, cv::Mat & p_descriptors);
 	std::vector<cv::KeyPoint> DistributeTree(const std::vector<cv::KeyPoint>& p_distributed_keypoints, const int32_t & p_x_min,

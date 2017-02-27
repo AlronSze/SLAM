@@ -110,9 +110,6 @@
     <ClInclude Include="3rd_part\dbow2\ScoringObject.h">
       <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
-    <ClInclude Include="3rd_part\dbow2\templatedvocabulary.h">
-      <Filter>3rd_part\dbow2</Filter>
-    </ClInclude>
     <ClInclude Include="3rd_part\dbow2\DUtils\Random.h">
       <Filter>3rd_part\dbow2\dutils</Filter>
     </ClInclude>
@@ -124,6 +121,9 @@
     </ClInclude>
     <ClInclude Include="inc\orb_feature.h">
       <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
+      <Filter>3rd_part\dbow2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

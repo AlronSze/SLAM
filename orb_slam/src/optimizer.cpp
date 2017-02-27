@@ -108,7 +108,7 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 
 	g2o::VertexSE3Expmap* vertex_recover = dynamic_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(0));
 	g2o::SE3Quat se3_recover = vertex_recover->estimate();
-	p_transform = Eigen::Isometry3d(se3_recover);
+	p_transform = Eigen::Isometry3d(se3_recover.to_homogeneous_matrix());
 
 	return image_size - outliers;
 }
@@ -172,9 +172,10 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 
 				cv::Point3d point_3d;
 				cv::Point3f point_3f = cur_map_point->point_3d_;
-				point_3d.x = (float)(transform(0, 0) * (double)point_3f.x + transform(0, 1) * (double)point_3f.y + transform(0, 2) * (double)point_3f.z + transform(0, 3));
-				point_3d.y = (float)(transform(1, 0) * (double)point_3f.x + transform(1, 1) * (double)point_3f.y + transform(1, 2) * (double)point_3f.z + transform(1, 3));
-				point_3d.z = (float)(transform(2, 0) * (double)point_3f.x + transform(2, 1) * (double)point_3f.y + transform(2, 2) * (double)point_3f.z + transform(2, 3));
+
+				point_3d.x = transform(0, 0) * (double)point_3f.x + transform(0, 1) * (double)point_3f.y + transform(0, 2) * (double)point_3f.z + transform(0, 3);
+				point_3d.y = transform(1, 0) * (double)point_3f.x + transform(1, 1) * (double)point_3f.y + transform(1, 2) * (double)point_3f.z + transform(1, 3);
+				point_3d.z = transform(2, 0) * (double)point_3f.x + transform(2, 1) * (double)point_3f.y + transform(2, 2) * (double)point_3f.z + transform(2, 3);
 
 				g2o::VertexSBAPointXYZ * vertex = new g2o::VertexSBAPointXYZ();
 				vertex->setEstimate(Eigen::Vector3d(point_3d.x, point_3d.y, point_3d.z));
@@ -211,24 +212,24 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		}
 	}
 
-	int32_t outliers = 0;
+	//int32_t outliers = 0;
 
-	for (int32_t i = 0, for_size = (int32_t)edges.size(); i < for_size; ++i)
-	{
-		edges[i]->computeError();
+	//for (int32_t i = 0, for_size = (int32_t)edges.size(); i < for_size; ++i)
+	//{
+	//	edges[i]->computeError();
 
-		if (edges[i]->chi2() > 5.991)
-		{
-			edges[i]->setLevel(1);
-			++outliers;
-		}
-		else
-		{
-			edges[i]->setLevel(0);
-		}
-	}
+	//	if (edges[i]->chi2() > 5.991)
+	//	{
+	//		edges[i]->setLevel(1);
+	//		++outliers;
+	//	}
+	//	else
+	//	{
+	//		edges[i]->setLevel(0);
+	//	}
+	//}
 
-	std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
+	//std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
 
 	std::cout << "Optimizing..." << std::endl;
 	optimizer.initializeOptimization();
@@ -263,18 +264,4 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 			}
 		}
 	}
-
-	//int32_t outliers = 0;
-
-	//for (auto edge : edges)
-	//{
-	//	edge->computeError();
-
-	//	if (edge->chi2() > 5.991)
-	//	{
-	//		++outliers;
-	//	}
-	//}
-
-	//std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
 }

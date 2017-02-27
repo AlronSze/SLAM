@@ -1336,7 +1336,7 @@ int TemplatedVocabulary<TDescriptor,F>::stopWords(double minWeight)
 template<class TDescriptor, class F>
 bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &filename)
 {
-    ifstream f;
+    std::ifstream f;
     f.open(filename.c_str());
 	
     if(f.eof())
@@ -1357,7 +1357,7 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 
     if(m_k<0 || m_k>20 || m_L<1 || m_L>10 || n1<0 || n1>5 || n2<0 || n2>3)
     {
-        std::cerr << "Vocabulary loading failure: This is not a correct text file!" << endl;
+        std::cerr << "Vocabulary loading failure: This is not a correct text file!" << std::endl;
 		return false;
     }
     
@@ -1427,9 +1427,9 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromTextFile(const std::string &fil
 template<class TDescriptor, class F>
 void TemplatedVocabulary<TDescriptor,F>::saveToTextFile(const std::string &filename) const
 {
-    fstream f;
-    f.open(filename.c_str(),ios_base::out);
-    f << m_k << " " << m_L << " " << " " << m_scoring << " " << m_weighting << endl;
+	std::fstream f;
+    f.open(filename.c_str(),std::ios_base::out);
+    f << m_k << " " << m_L << " " << " " << m_scoring << " " << m_weighting << std::endl;
 
     for(size_t i=1; i<m_nodes.size();i++)
     {
@@ -1441,7 +1441,7 @@ void TemplatedVocabulary<TDescriptor,F>::saveToTextFile(const std::string &filen
         else
             f << 0 << " ";
 
-        f << F::toString(node.descriptor) << " " << (double)node.weight << endl;
+        f << F::toString(node.descriptor) << " " << (double)node.weight << std::endl;
     }
 
     f.close();

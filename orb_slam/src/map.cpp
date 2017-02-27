@@ -1,6 +1,13 @@
 #include "../inc/map.h"
 
+#ifdef _WIN32
 #include <windows.h>
+#define thread_sleep(x) Sleep(x)
+#elif __linux__
+#include <unistd.h>
+#define thread_sleep(x) usleep(x)
+#endif
+
 #include <pcl/io/pcd_io.h>
 
 #include "../inc/map_point.h"
@@ -43,7 +50,7 @@ void Map::Run()
 					pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
 					// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWhole(key_frames_[i]);
 
-#					pragma omp critical (section)
+					#pragma omp critical (section)
 					{
 						*global_cloud += *new_cloud;
 					}
@@ -73,7 +80,7 @@ void Map::Run()
 			can_draw_ = true;
 		}
 
-		Sleep(3000);
+		thread_sleep(1000);
 	}
 }
 

@@ -163,7 +163,7 @@ std::vector<cv::Mat> Frame::GetDescriptorVector() const
 
 void Frame::SetPointCloud()
 {
-	point_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA>>();
+	point_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA> >();
 
 	const int32_t rows = depth_image_.rows;
 	const int32_t cols = depth_image_.cols;
@@ -201,7 +201,7 @@ void Frame::SetPointCloud()
 std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio)
 {
 	cv::BruteForceMatcher<cv::HammingLUT> matcher;
-	std::vector<std::vector<cv::DMatch>> matches_knn;
+	std::vector<std::vector<cv::DMatch> > matches_knn;
 	std::vector<cv::DMatch> matches;
 
 	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);

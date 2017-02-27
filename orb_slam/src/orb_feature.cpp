@@ -454,7 +454,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 		}
 	}
 
-	std::vector<std::pair<int32_t, FeatureNode *>> nodes_size_and_pointer;
+	std::vector<std::pair<int32_t, FeatureNode *> > nodes_size_and_pointer;
 	nodes_size_and_pointer.reserve(nodes_list.size() * 4);
 
 	for (bool is_finish = false; !is_finish;)
@@ -505,7 +505,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 			{
 				pre_nodes_list_size = (int32_t)nodes_list.size();
 
-				std::vector<std::pair<int32_t, FeatureNode *>> pre_nodes_size_and_pointer = nodes_size_and_pointer;
+				std::vector<std::pair<int32_t, FeatureNode *> > pre_nodes_size_and_pointer = nodes_size_and_pointer;
 				nodes_size_and_pointer.clear();
 				std::sort(pre_nodes_size_and_pointer.begin(), pre_nodes_size_and_pointer.end());
 
@@ -568,7 +568,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 	return keypoints_result;
 }
 
-void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint>> & p_keypoints)
+void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint> > & p_keypoints)
 {
 	p_keypoints.resize(levels_);
 
@@ -706,7 +706,7 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 
 	ComputePyramid(image);
 
-	std::vector<std::vector<cv::KeyPoint>> keypoints;
+	std::vector<std::vector<cv::KeyPoint> > keypoints;
 	ComputeKeyPoints(keypoints);
 
 	cv::Mat descriptors;
