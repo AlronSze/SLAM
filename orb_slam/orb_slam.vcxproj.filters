@@ -63,14 +63,17 @@
     <ClCompile Include="3rd_part\dbow2\DUtils\Timestamp.cpp">
       <Filter>3rd_part\dbow2\dutils</Filter>
     </ClCompile>
-    <ClCompile Include="test\ba_test.cpp">
-      <Filter>test</Filter>
-    </ClCompile>
     <ClCompile Include="src\map_point.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\orb_feature.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\orb_matcher.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="test\main_device.cpp">
+      <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +127,9 @@
     </ClInclude>
     <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
       <Filter>3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\orb_matcher.h">
+      <Filter>inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

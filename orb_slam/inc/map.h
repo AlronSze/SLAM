@@ -23,11 +23,6 @@ private:
 public:
 	bool can_draw_;
 	bool draw_world_points_;
-	float camera_fx_;
-	float camera_fy_;
-	float camera_cx_;
-	float camera_cy_;
-	float camera_scale_;
 
 private:
 	std::vector<Frame> key_frames_;

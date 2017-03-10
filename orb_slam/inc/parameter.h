@@ -8,7 +8,7 @@ public:
 	Parameter(const std::string p_yml_name);
 
 private:
-	void print();
+	void Print();
 
 public:
 	// image number
@@ -36,7 +36,6 @@ public:
 	int kORBThresholdInit_;
 	int kORBThresholdMin_;
 	float kORBMatchRatio_;
-	int kORBMatchThreshold_;
 
 	// dataset directory
 	std::string kDatasetDir_;

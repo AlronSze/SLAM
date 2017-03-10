@@ -13,13 +13,14 @@ Frame::Frame() : id_(-1), transform_(Eigen::Isometry3d::Identity())
 }
 
 Frame::Frame(const Frame & p_frame) :
-	id_(p_frame.id_), rgb_image_(p_frame.rgb_image_.clone()), depth_image_(p_frame.depth_image_.clone()), descriptors_(p_frame.descriptors_.clone()),
+	id_(p_frame.id_), bgr_image_(p_frame.bgr_image_.clone()), depth_image_(p_frame.depth_image_.clone()), descriptors_(p_frame.descriptors_.clone()),
 	key_points_(p_frame.key_points_), transform_(p_frame.transform_), point_3d_(p_frame.point_3d_), key_point_number_(p_frame.key_point_number_),
 	orb_features_max_(p_frame.orb_features_max_), orb_scale_(p_frame.orb_scale_), orb_levels_(p_frame.orb_levels_),
 	orb_threshold_init_(p_frame.orb_threshold_init_), orb_threshold_min_(p_frame.orb_threshold_min_), dataset_dir_(p_frame.dataset_dir_), 
 	camera_fx_(p_frame.camera_fx_), camera_fy_(p_frame.camera_fy_), camera_cx_(p_frame.camera_cx_), camera_cy_(p_frame.camera_cy_), 
 	camera_scale_(p_frame.camera_scale_), point_depth_(p_frame.point_depth_), bow_vector(p_frame.bow_vector), depth_max_(p_frame.depth_max_),
-	filter_interval_(p_frame.filter_interval_), point_2d_(p_frame.point_2d_), map_points_(p_frame.map_points_), point_cloud_(p_frame.point_cloud_)
+	filter_interval_(p_frame.filter_interval_), point_2d_(p_frame.point_2d_), map_points_(p_frame.map_points_), point_cloud_(p_frame.point_cloud_),
+	camera_K_(p_frame.camera_K_), camera_D_(p_frame.camera_D_), key_points_fixed_(p_frame.key_points_fixed_)
 {
 }
 
@@ -31,6 +32,21 @@ Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(
 	orb_threshold_init_ = p_parameter.kORBThresholdInit_;
 	orb_threshold_min_ = p_parameter.kORBThresholdMin_;
 	dataset_dir_ = p_parameter.kDatasetDir_;
+
+	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
+	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
+	temp_K.at<float>(1, 1) = p_parameter.kCameraParameters_.fy_;
+	temp_K.at<float>(0, 2) = p_parameter.kCameraParameters_.cx_;
+	temp_K.at<float>(1, 2) = p_parameter.kCameraParameters_.cy_;
+	temp_K.copyTo(camera_K_);
+
+	cv::Mat temp_D(5, 1, CV_32F);
+	temp_D.at<float>(0) = p_parameter.kCameraParameters_.d0_;
+	temp_D.at<float>(1) = p_parameter.kCameraParameters_.d1_;
+	temp_D.at<float>(2) = p_parameter.kCameraParameters_.d2_;
+	temp_D.at<float>(3) = p_parameter.kCameraParameters_.d3_;
+	temp_D.at<float>(4) = p_parameter.kCameraParameters_.d4_;
+	temp_D.copyTo(camera_D_);
 
 	camera_fx_ = p_parameter.kCameraParameters_.fx_;
 	camera_fy_ = p_parameter.kCameraParameters_.fy_;
@@ -45,6 +61,45 @@ Frame::Frame(const int32_t p_index, const Parameter & p_parameter) : transform_(
 	ComputePoint3D();
 }
 
+Frame::Frame(const int32_t p_index, const cv::Mat & p_color_image, const cv::Mat & p_depth_image, const Parameter & p_parameter) :
+	transform_(Eigen::Isometry3d::Identity()), id_(p_index)
+{
+	orb_features_max_ = p_parameter.kORBFeaturesMax_;
+	orb_scale_ = p_parameter.kORBScale_;
+	orb_levels_ = p_parameter.kORBLevels_;
+	orb_threshold_init_ = p_parameter.kORBThresholdInit_;
+	orb_threshold_min_ = p_parameter.kORBThresholdMin_;
+
+	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
+	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
+	temp_K.at<float>(1, 1) = p_parameter.kCameraParameters_.fy_;
+	temp_K.at<float>(0, 2) = p_parameter.kCameraParameters_.cx_;
+	temp_K.at<float>(1, 2) = p_parameter.kCameraParameters_.cy_;
+	temp_K.copyTo(camera_K_);
+
+	cv::Mat temp_D(5, 1, CV_32F);
+	temp_D.at<float>(0) = p_parameter.kCameraParameters_.d0_;
+	temp_D.at<float>(1) = p_parameter.kCameraParameters_.d1_;
+	temp_D.at<float>(2) = p_parameter.kCameraParameters_.d2_;
+	temp_D.at<float>(3) = p_parameter.kCameraParameters_.d3_;
+	temp_D.at<float>(4) = p_parameter.kCameraParameters_.d4_;
+	temp_D.copyTo(camera_D_);
+
+	camera_fx_ = p_parameter.kCameraParameters_.fx_;
+	camera_fy_ = p_parameter.kCameraParameters_.fy_;
+	camera_cx_ = p_parameter.kCameraParameters_.cx_;
+	camera_cy_ = p_parameter.kCameraParameters_.cy_;
+	camera_scale_ = p_parameter.kCameraParameters_.scale_;
+	depth_max_ = p_parameter.kFilterDepthMax_;
+	filter_interval_ = p_parameter.kFilterInterval_;
+
+	bgr_image_ = p_color_image.clone();
+	depth_image_ = p_depth_image.clone();
+	
+	GetKeyPointAndDescriptor();
+	ComputePoint3D();
+}
+
 void Frame::GetImage(const int32_t p_index)
 {
 	id_ = p_index;
@@ -54,7 +109,7 @@ void Frame::GetImage(const int32_t p_index)
 
 	combine << dataset_dir_ << "rgb/" << p_index << ".png";
 	combine >> file_name;
-	rgb_image_ = cv::imread(file_name);
+	bgr_image_ = cv::imread(file_name);
 
 	combine.clear();
 	file_name.clear();
@@ -63,7 +118,7 @@ void Frame::GetImage(const int32_t p_index)
 	combine >> file_name;
 	depth_image_ = cv::imread(file_name);
 
-	if (rgb_image_.empty() || depth_image_.empty())
+	if (bgr_image_.empty() || depth_image_.empty())
 	{
 		std::cerr << "Failed to load image: " << p_index << ".png" << std::endl;
 		exit(0);
@@ -73,7 +128,7 @@ void Frame::GetImage(const int32_t p_index)
 void Frame::GetKeyPointAndDescriptor()
 {
 	cv::Mat gray;
-	cv::cvtColor(rgb_image_, gray, CV_BGR2GRAY);
+	cv::cvtColor(bgr_image_, gray, CV_BGR2GRAY);
 
 	ORBFeature orb(orb_features_max_, orb_scale_, orb_levels_, orb_threshold_init_, orb_threshold_min_);
 	orb(gray, key_points_, descriptors_);
@@ -83,6 +138,8 @@ void Frame::GetKeyPointAndDescriptor()
 
 void Frame::ComputePoint3D()
 {
+	UndistortKeyPoints();
+
 	point_2d_.reserve(key_point_number_);
 	point_3d_.reserve(key_point_number_);
 	point_depth_.reserve(key_point_number_);
@@ -91,6 +148,8 @@ void Frame::ComputePoint3D()
 	{
 		const int32_t point_x = (int32_t)key_points_[i].pt.x;
 		const int32_t point_y = (int32_t)key_points_[i].pt.y;
+		const int32_t point_x_fixed = (int32_t)key_points_fixed_[i].pt.x;
+		const int32_t point_y_fixed = (int32_t)key_points_fixed_[i].pt.y;
 		const uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
 		if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
@@ -101,12 +160,12 @@ void Frame::ComputePoint3D()
 		}
 		else
 		{
-			point_2d_.push_back(cv::Point2f((float)point_x, (float)point_y));
+			point_2d_.push_back(cv::Point2f((float)point_x_fixed, (float)point_y_fixed));
 
 			cv::Point3f point_3f;
 			point_3f.z = (float)depth / camera_scale_;
-			point_3f.x = ((float)point_x - camera_cx_) * point_3f.z / camera_fx_;
-			point_3f.y = ((float)point_y - camera_cy_) * point_3f.z / camera_fy_;
+			point_3f.x = ((float)point_x_fixed - camera_cx_) * point_3f.z / camera_fx_;
+			point_3f.y = ((float)point_y_fixed - camera_cy_) * point_3f.z / camera_fy_;
 			point_3d_.push_back(point_3f);
 
 			point_depth_.push_back(depth);
@@ -134,9 +193,9 @@ void Frame::InitializeMapPoints()
 			const int32_t point_x = (int32_t)point_2d_[i].x;
 			const int32_t point_y = (int32_t)point_2d_[i].y;
 
-			map_point->rgb_r_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
-			map_point->rgb_g_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
-			map_point->rgb_b_ = rgb_image_.ptr<uint8_t>(point_y)[point_x * 3];
+			map_point->rgb_r_ = bgr_image_.ptr<uint8_t>(point_y)[point_x * 3 + 2];
+			map_point->rgb_g_ = bgr_image_.ptr<uint8_t>(point_y)[point_x * 3 + 1];
+			map_point->rgb_b_ = bgr_image_.ptr<uint8_t>(point_y)[point_x * 3];
 
 			map_point->InsertObservation(id_, i);
 		}
@@ -147,7 +206,7 @@ void Frame::InitializeMapPoints()
 
 void Frame::ReleaseImage()
 {
-	rgb_image_.release();
+	bgr_image_.release();
 	depth_image_.release();
 }
 
@@ -185,9 +244,9 @@ void Frame::SetPointCloud()
 			point_3f.x = ((float)x - camera_cx_) * point_3f.z / camera_fx_;
 			point_3f.y = ((float)y - camera_cy_) * point_3f.z / camera_fy_;
 
-			point_xyzrgb.b = rgb_image_.ptr<uint8_t>(y)[x * 3];
-			point_xyzrgb.g = rgb_image_.ptr<uint8_t>(y)[x * 3 + 1];
-			point_xyzrgb.r = rgb_image_.ptr<uint8_t>(y)[x * 3 + 2];
+			point_xyzrgb.b = bgr_image_.ptr<uint8_t>(y)[x * 3];
+			point_xyzrgb.g = bgr_image_.ptr<uint8_t>(y)[x * 3 + 1];
+			point_xyzrgb.r = bgr_image_.ptr<uint8_t>(y)[x * 3 + 2];
 
 			point_xyzrgb.x = point_3f.x;
 			point_xyzrgb.y = point_3f.y;
@@ -198,53 +257,32 @@ void Frame::SetPointCloud()
 	}
 }
 
-std::vector<cv::DMatch> Frame::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio)
+void Frame::UndistortKeyPoints()
 {
-	cv::BruteForceMatcher<cv::HammingLUT> matcher;
-	std::vector<std::vector<cv::DMatch> > matches_knn;
-	std::vector<cv::DMatch> matches;
-
-	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
-
-	const size_t knn_size = matches_knn.size();
-	matches.reserve(knn_size);
-
-	for (size_t i = 0; i < knn_size; ++i)
+	if (camera_D_.at<float>(0) == 0.0)
 	{
-		if (matches_knn[i][0].distance < (p_match_ratio * matches_knn[i][1].distance))
-		{
-			matches.push_back(matches_knn[i][0]);
-		}
+		key_points_fixed_ = key_points_;
+		return;
 	}
 
-	return matches;
-	// return DoRansacMatch(p_query_frame, p_train_frame, matches);
-}
+	cv::Mat temp(key_point_number_, 2, CV_32F);
+	key_points_fixed_.resize(key_point_number_);
 
-std::vector<cv::DMatch> Frame::DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches)
-{
-	const size_t matches_size = p_matches.size();
-
-	std::vector<cv::DMatch> ransac_matches;
-	std::vector<cv::Point2f> query_points(p_matches.size());
-	std::vector<cv::Point2f> train_points(p_matches.size());
-
-	for (size_t i = 0; i < matches_size; ++i)
+	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
-		query_points[i] = p_query_frame.key_points_[p_matches[i].queryIdx].pt;
-		train_points[i] = p_train_frame.key_points_[p_matches[i].trainIdx].pt;
+		temp.at<float>(i, 0) = key_points_[i].pt.x;
+		temp.at<float>(i, 1) = key_points_[i].pt.y;
 	}
 
-	std::vector<uint8_t> inliers_mask(matches_size);
-	cv::findFundamentalMat(query_points, train_points, inliers_mask);
+	temp = temp.reshape(2);
+	cv::undistortPoints(temp, temp, camera_K_, camera_D_, cv::Mat(), camera_K_);
+	temp = temp.reshape(1);
 
-	for (size_t i = 0, for_size = inliers_mask.size(); i < for_size; ++i)
+	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
-		if (inliers_mask[i])
-		{
-			ransac_matches.push_back(p_matches[i]);
-		}
+		cv::KeyPoint key_point = key_points_[i];
+		key_point.pt.x = temp.at<float>(i, 0);
+		key_point.pt.y = temp.at<float>(i, 1);
+		key_points_fixed_[i] = key_point;
 	}
-
-	return ransac_matches;
 }

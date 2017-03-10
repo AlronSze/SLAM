@@ -17,6 +17,7 @@
 #include <opencv2/legacy/legacy.hpp>
 
 #include "../inc/optimizer.h"
+#include "../inc/orb_matcher.h"
 
 LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) :
 	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
@@ -40,7 +41,6 @@ LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) :
 	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin_;
 	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin_;
 	match_ratio_ = p_parameter.kORBMatchRatio_;
-	match_threshold_ = p_parameter.kORBMatchThreshold_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
 
@@ -62,10 +62,10 @@ void LoopClosing::LoadVocabulary()
 
 void LoopClosing::InitializeG2O()
 {
-	g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>* linear_solver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
+	g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType> * linear_solver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
 	// linear_solver->setBlockOrdering(false);
-	g2o::BlockSolver_6_3 *block_solver = new g2o::BlockSolver_6_3(linear_solver);
-	g2o::OptimizationAlgorithmLevenberg* algorithm = new g2o::OptimizationAlgorithmLevenberg(block_solver);
+	g2o::BlockSolver_6_3 * block_solver = new g2o::BlockSolver_6_3(linear_solver);
+	g2o::OptimizationAlgorithmLevenberg * algorithm = new g2o::OptimizationAlgorithmLevenberg(block_solver);
 	optimizer_.setAlgorithm(algorithm);
 	optimizer_.setVerbose(false);
 }
@@ -100,7 +100,10 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		vertex->setFixed(true);
 		optimizer_.addVertex(vertex);
 
-		while (!map_->can_draw_) { thread_sleep(1); }
+		while (!map_->can_draw_)
+		{
+			thread_sleep(1);
+		}
 		map_->GetKeyFrames(key_frames_, false);
 	}
 
@@ -124,17 +127,29 @@ void LoopClosing::OptimizeLast()
 
 	std::cout << "Optimized!" << std::endl;
 
-	while (!map_->can_draw_) { thread_sleep(1); }
+	while (!map_->can_draw_)
+	{
+		thread_sleep(1);
+	}
 	map_->GetKeyFrames(optimized_key_frames, false);
-	while (!map_->can_draw_) { thread_sleep(1); }
+	while (!map_->can_draw_)
+	{
+		thread_sleep(1);
+	}
 
 	std::cout << "Bundle Adjustment..." << std::endl;
-	Optimizer::BundleAdjustment(optimized_key_frames);
+	Optimizer::BundleAdjustment(optimized_key_frames, 20);
 	std::cout << "Bundle Adjustment Finished!" << std::endl;
 
-	while (!map_->can_draw_) { thread_sleep(1); }
+	while (!map_->can_draw_)
+	{
+		thread_sleep(1);
+	}
 	map_->GetKeyFrames(optimized_key_frames, true);
-	while (!map_->can_draw_) { thread_sleep(1); }
+	while (!map_->can_draw_)
+	{
+		thread_sleep(1);
+	}
 }
 
 void LoopClosing::AddCurFrameToGraph()
@@ -159,7 +174,7 @@ void LoopClosing::ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv
 	Frame & key_frame = key_frames_[p_frame_id];
 	std::vector<int8_t> train_flag(key_frame.key_point_number_, 0);
 	const int32_t matches_size = (int32_t)p_matches.size();
-	int32_t insert_id = cur_frame_.id_;
+	const int32_t insert_id = cur_frame_.id_;
 
 	#pragma omp parallel for
 	for (int32_t i = 0; i < matches_size; ++i)
@@ -183,14 +198,24 @@ void LoopClosing::ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv
 				{
 					train_flag[train_index] = 1;
 
-					train_map_point->InsertObservation(insert_id, query_index);
+					for (auto observation : query_map_point->observation_id_)
+					{
+						train_map_point->InsertObservation(observation.first, observation.second);
+					}
+
+					for (auto observation : train_map_point->observation_id_)
+					{
+						query_map_point->InsertObservation(observation.first, observation.second);
+					}
+
+					//train_map_point->InsertObservation(insert_id, query_index);
 					train_map_point->point_2d_ = query_map_point->point_2d_;
 					train_map_point->point_3d_ = query_map_point->point_3d_;
 					train_map_point->rgb_r_ = query_map_point->rgb_r_;
 					train_map_point->rgb_g_ = query_map_point->rgb_g_;
 					train_map_point->rgb_b_ = query_map_point->rgb_b_;
 
-					cur_frame_.map_points_[query_index] = train_map_point;
+					//cur_frame_.map_points_[query_index] = train_map_point;
 				}
 			}
 		}
@@ -199,24 +224,30 @@ void LoopClosing::ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv
 
 void LoopClosing::LoopClose()
 {
+	int32_t key_frames_size = (int32_t)key_frames_.size();
+
+	std::cout << "Local Bundle Adjustment..." << std::endl;
+	const int32_t ba_start_index = ((key_frames_size - 5) >= 0) ? (key_frames_size - 5) : 0;
+	Optimizer::BundleAdjustment(key_frames_, 10, ba_start_index);
+
 	std::cout << "Detecting local loop closure..." << std::endl;
-	const int32_t start_index = (int32_t)key_frames_.size() - 2;
+	const int32_t start_index = key_frames_size - 2;
 	const int32_t end_index = ((start_index - 10 + 1) >= 0) ? (start_index - 10 + 1) : 0;
 
 	#pragma omp parallel for
-	for (int32_t i = start_index; i >= end_index; i--)
+	for (int32_t i = start_index; i >= end_index; --i)
 	{
 		Eigen::Isometry3d transform = cur_frame_.GetTransform();
 		std::vector<cv::DMatch> matches;
 		std::vector<int8_t> matches_flag;
-		if (!GetPose(cur_frame_, key_frames_[i], transform, matches, matches_flag, 40))
+		if (!GetPose(cur_frame_, key_frames_[i], transform, matches, matches_flag, 100))
 		{
 			continue;
 		}
 
-		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
-		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
-		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
+		g2o::EdgeSE3 * edge = new g2o::EdgeSE3();
+		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3 *> (optimizer_.vertex(key_frames_[i].id_));
+		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3 *> (optimizer_.vertex(cur_frame_.id_));
 		edge->setMeasurement(transform);
 		edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * 100);
 		edge->setRobustKernel(new g2o::RobustKernelHuber());
@@ -273,7 +304,7 @@ void LoopClosing::LoopClose()
 		optimizer_.initializeOptimization();
 		optimizer_.optimize(10);
 
-		for (size_t i = 0, for_size = key_frames_.size(); i < for_size; ++i)
+		for (size_t i = 0; i < (size_t)key_frames_size; ++i)
 		{
 			g2o::VertexSE3* vertex = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[i].id_));
 			key_frames_[i].SetTransform(vertex->estimate());
@@ -316,17 +347,17 @@ std::vector<int32_t> LoopClosing::GetLoopFrames()
 void LoopClosing::SetBowVector(Frame & p_frame)
 {
 	DBoW2::FeatureVector feature_vector;
-	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 2);
+	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 4);
 }
 
 bool LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform,
 	std::vector<cv::DMatch> & p_matches, std::vector<int8_t> & p_matches_flag, const int32_t p_threshold)
 {
-	p_matches = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
+	p_matches = ORBMatcher::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
 	int32_t matches_size = (int32_t)p_matches.size();
 	// std::cout << "Match Number: " << matches_size << std::endl;
 
-	if (matches_size < match_threshold_)
+	if (matches_size == 0)
 	{
 		return false;
 	}

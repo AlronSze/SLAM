@@ -2,12 +2,14 @@
 
 #################### TUM Dataset ####################
 # cafe(782)                                         #
+# freiburg1_desk(573)                               #
 # freiburg1_xyz(792)                                #
 # freiburg1_rpy(694)                                #
 # freiburg1_plant(1126)                             #
 # freiburg1_room(1352)                              #
 # freiburg2_desk(2893)                              #
 # freiburg2_flowerbouquet(2859)                     #
+# freiburg2_large_with_loop(5057)                   #
 # freiburg3_nostructure_texture_near_withloop(1639) #
 # freiburg3_structure_texture_far(907)              #
 # freiburg3_long_office_household(2488)             #
@@ -75,8 +77,7 @@ orb:
   levels : 8
   threshold_init : 20
   threshold_min : 7
-  match_ratio : 0.8
-  match_threshold : 80
+  match_ratio : 0.7
 
 # dataset directory
 dataset_dir : "../../Dataset/freiburg1_room/"

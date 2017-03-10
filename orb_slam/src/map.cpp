@@ -14,11 +14,6 @@
 
 Map::Map(const Parameter & p_parameter) : can_draw_(true), draw_world_points_(false)
 {
-	camera_fx_ = p_parameter.kCameraParameters_.fx_;
-	camera_fy_ = p_parameter.kCameraParameters_.fy_;
-	camera_cx_ = p_parameter.kCameraParameters_.cx_;
-	camera_cy_ = p_parameter.kCameraParameters_.cy_;
-	camera_scale_ = p_parameter.kCameraParameters_.scale_;
 }
 
 void Map::GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_flag)
@@ -47,8 +42,8 @@ void Map::Run()
 				#pragma omp parallel for
 				for (int32_t i = 0; i < key_frames_size; ++i)
 				{
-					pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
-					// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWhole(key_frames_[i]);
+					// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
+					pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWhole(key_frames_[i]);
 
 					#pragma omp critical (section)
 					{
@@ -130,7 +125,7 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Map::GetPointCloudOfWorldPoints(const Fr
 	{
 		MapPoint * map_point = p_frame.map_points_[i];
 
-		if (map_point->is_bad_ || (map_point->best_id_ != frame_id))
+		if (map_point->is_bad_ || (map_point->best_id_ != frame_id) || (map_point->observation_count_ <= 1))
 		{
 			continue;
 		}

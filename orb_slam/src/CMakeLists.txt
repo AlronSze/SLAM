@@ -1,5 +1,5 @@
 add_library( SLAM
-    draw_image.cpp frame.cpp loop_closing.cpp map.cpp map_point.cpp optimizer.cpp orb_feature.cpp parameter.cpp tracking.cpp
+    draw_image.cpp frame.cpp loop_closing.cpp map.cpp map_point.cpp optimizer.cpp orb_feature.cpp parameter.cpp tracking.cpp orb_matcher.cpp
 )
 
 target_link_libraries( SLAM

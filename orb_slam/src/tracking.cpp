@@ -5,6 +5,7 @@
 
 #include "../inc/optimizer.h"
 #include "../inc/map_point.h"
+#include "../inc/orb_matcher.h"
 
 Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
 	tracking_state_(INITIALIZE), loop_closing_(p_loop_closing), last_transform_(Eigen::Isometry3d::Identity())
@@ -25,7 +26,6 @@ Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) 
 	temp_D.copyTo(camera_D_);
 
 	match_ratio_ = p_parameter.kORBMatchRatio_;
-	match_threshold_ = p_parameter.kORBMatchThreshold_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 }
 
@@ -107,6 +107,7 @@ void Tracking::Track()
 			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			UpdateKeyFrames();
+			return;
 		}
 	}
 	else if (tracking_state_ == OK)
@@ -163,9 +164,9 @@ bool Tracking::Relocalization()
 {
 	std::cout << "Tracking Relocalizing..." << std::endl;
 
-	const size_t start_index = key_frames_.size() - 1;
-	const size_t end_index = (((int32_t)start_index - 10) > 0) ? (start_index - 10) : 0;
-	for (size_t i = start_index, delete_frames_count = 0; i >= end_index; --i)
+	const int32_t start_index = key_frames_.size() - 1;
+	const int32_t end_index = ((start_index - 10) > 0) ? (start_index - 10) : 0;
+	for (int32_t i = start_index, delete_frames_count = 0; i >= end_index; --i)
 	{
 		if (!OptimizePose(key_frames_[i], *cur_frame_, 10))
 		{
@@ -212,11 +213,11 @@ bool Tracking::Relocalization()
 
 bool Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, const int32_t p_threshold)
 {
-	cur_matches_ = Frame::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
+	cur_matches_ = ORBMatcher::MatchTwoFrame(p_query_frame, p_train_frame, match_ratio_);
 	cur_matches_size_ = (int32_t)cur_matches_.size();
 	// std::cout << "Match Number: " << cur_matches_size_ << std::endl;
 	
-	if (cur_matches_size_ < match_threshold_)
+	if (cur_matches_size_ == 0)
 	{
 		return false;
 	}
@@ -229,23 +230,15 @@ bool Tracking::OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, 
 	std::vector<int32_t> matches_valid;
 	matches_valid.reserve(cur_matches_size_);
 
-	//Eigen::Matrix4d transform = p_query_frame.GetTransform().matrix();
-
 	for (int32_t i = 0; i < cur_matches_size_; ++i)
 	{
 		uint16_t depth = p_query_frame.point_depth_[cur_matches_[i].queryIdx];
 		if (depth == 0)
 		{
 			continue;
-		}
+		}		
 
-		cv::Point3f points_camera(p_query_frame.point_3d_[cur_matches_[i].queryIdx]);
-		//cv::Point3f points_world;
-		//points_world.x = (float)(transform(0, 0) * (double)points_camera.x + transform(0, 1) * (double)points_camera.y + transform(0, 2) * (double)points_camera.z + transform(0, 3));
-		//points_world.y = (float)(transform(1, 0) * (double)points_camera.x + transform(1, 1) * (double)points_camera.y + transform(1, 2) * (double)points_camera.z + transform(1, 3));
-		//points_world.z = (float)(transform(2, 0) * (double)points_camera.x + transform(2, 1) * (double)points_camera.y + transform(2, 2) * (double)points_camera.z + transform(2, 3));
-
-		query_frame_points.push_back(points_camera);
+		query_frame_points.push_back(cv::Point3f(p_query_frame.point_3d_[cur_matches_[i].queryIdx]));
 		train_frame_points.push_back(cv::Point2f(p_train_frame.point_2d_[cur_matches_[i].trainIdx]));
 		matches_valid.push_back(i);
 	}

@@ -34,7 +34,6 @@ private:
 	} tracking_state_;
 
 	float match_ratio_;
-	int32_t match_threshold_;
 	int32_t pnp_inliers_threshold_;
 
 	cv::Mat camera_K_;
@@ -59,7 +58,7 @@ private:
 inline bool Tracking::NeedInsertKeyFrame(const bool p_flag)
 {
 	double norm = fabs(cv::norm(cur_translation_)) + fabs(std::min(cv::norm(cur_rotation_), 2.0 * M_PI - cv::norm(cur_rotation_)));
-	bool norm_flag = (norm < 1.9) && (norm > 1.78);
+	bool norm_flag = (norm < 1.86) && (norm > 1.76);
 	return (norm_flag || p_flag);
 }
 

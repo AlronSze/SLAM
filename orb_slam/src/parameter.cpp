@@ -29,7 +29,6 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage["orb"]["threshold_init"] >> kORBThresholdInit_;
 	file_storage["orb"]["threshold_min"] >> kORBThresholdMin_;
 	file_storage["orb"]["match_ratio"] >> kORBMatchRatio_;
-	file_storage["orb"]["match_threshold"] >> kORBMatchThreshold_;
 
 	// dataset directory
 	file_storage["dataset_dir"] >> kDatasetDir_;
@@ -53,10 +52,10 @@ Parameter::Parameter(const std::string p_yml_name)
 
 	file_storage.release();
 
-	print();
+	Print();
 }
 
-void Parameter::print()
+void Parameter::Print()
 {
 	std::cout << std::endl << "===================== Parameters =====================" << std::endl;
 

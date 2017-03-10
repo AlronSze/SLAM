@@ -19,6 +19,7 @@ public:
 	Frame();
 	Frame(const Frame &p_frame);
 	Frame(const int32_t p_index, const Parameter & p_parameter);
+	Frame(const int32_t p_index, const cv::Mat & p_color_image, const cv::Mat & p_depth_image, const Parameter & p_parameter);
 
 	void GetImage(const int32_t p_index);
 	void GetKeyPointAndDescriptor();
@@ -33,13 +34,13 @@ public:
 	inline void SetTransform(const Eigen::Isometry3d & p_transform);
 	inline Eigen::Isometry3d GetTransform() const;
 
-	static std::vector<cv::DMatch> MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio);
-	static std::vector<cv::DMatch> DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches);
+private:
+	void UndistortKeyPoints();
 
 public:
 	int32_t id_;
 	int32_t key_point_number_;
-	cv::Mat rgb_image_;
+	cv::Mat bgr_image_;
 	cv::Mat depth_image_;
 
 	float camera_fx_;
@@ -50,6 +51,7 @@ public:
 	DBoW2::BowVector bow_vector;
 	cv::Mat descriptors_;
 	std::vector<cv::KeyPoint> key_points_;
+	std::vector<cv::KeyPoint> key_points_fixed_;
 
 	std::vector<MapPoint *> map_points_;
 
@@ -70,6 +72,9 @@ private:
 
 	float camera_scale_;
 	float depth_max_;
+
+	cv::Mat camera_K_;
+	cv::Mat camera_D_;
 
 	Eigen::Isometry3d transform_;
 };

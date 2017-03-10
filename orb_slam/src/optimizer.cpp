@@ -44,12 +44,12 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	{
 		g2o::EdgeSE3ProjectXYZOnlyPose * edge = new g2o::EdgeSE3ProjectXYZOnlyPose();
 		edge->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(0)));
-		edge->setMeasurement(Eigen::Vector2d(p_image_points[i].x, p_image_points[i].y));
+		edge->setMeasurement(Eigen::Vector2d((double)p_image_points[i].x, (double)p_image_points[i].y));
 		edge->fx = camera_fx;
 		edge->fy = camera_fy;
 		edge->cx = camera_cx;
 		edge->cy = camera_cy;
-		edge->Xw = Eigen::Vector3d(p_object_points[i].x, p_object_points[i].y, p_object_points[i].z);
+		edge->Xw = Eigen::Vector3d((double)p_object_points[i].x, (double)p_object_points[i].y, (double)p_object_points[i].z);
 		edge->setInformation(Eigen::Matrix2d::Identity());
 		g2o::RobustKernelHuber* robust_kernel = new g2o::RobustKernelHuber();
 		edge->setRobustKernel(robust_kernel);
@@ -113,18 +113,18 @@ int32_t Optimizer::PnPSolver(const std::vector<cv::Point3f>& p_object_points, co
 	return image_size - outliers;
 }
 
-void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
+void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames, const int32_t p_iteration_times, const int32_t p_start_index)
 {
 	const int32_t frames_size = (int32_t)p_frames.size();
-	if (frames_size <= 1)
+	if ((frames_size - p_start_index) <= 1)
 	{
 		return;
 	}
 
-	const float camera_fx = p_frames[0].camera_fx_;
-	const float camera_fy = p_frames[0].camera_fy_;
-	const float camera_cx = p_frames[0].camera_cx_;
-	const float camera_cy = p_frames[0].camera_cy_;
+	const float camera_fx = p_frames[p_start_index].camera_fx_;
+	const float camera_fy = p_frames[p_start_index].camera_fy_;
+	const float camera_cx = p_frames[p_start_index].camera_cx_;
+	const float camera_cy = p_frames[p_start_index].camera_cy_;
 	const float huber_delta = sqrt(5.991);
 
 	g2o::SparseOptimizer optimizer;
@@ -136,7 +136,7 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 
 	std::map<int32_t, int32_t> frame_id_to_index;
 
-	for (int32_t i = 0; i < frames_size; ++i)
+	for (int32_t i = p_start_index; i < frames_size; ++i)
 	{
 		Eigen::Isometry3d transform = p_frames[i].GetTransform().inverse();
 		Eigen::Matrix3d rotation = transform.rotation();
@@ -144,16 +144,15 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		g2o::VertexSE3Expmap * vertex = new g2o::VertexSE3Expmap();
 		vertex->setEstimate(g2o::SE3Quat(rotation, translation));
 		vertex->setId(i);
-		vertex->setFixed(i==0);
+		vertex->setFixed(i==p_start_index);
 		optimizer.addVertex(vertex);
 		frame_id_to_index.insert(std::make_pair(p_frames[i].id_, i));
 	}
 
+	std::map<int32_t, int32_t>::iterator frame_id_to_index_end = frame_id_to_index.end();
 	std::vector<g2o::EdgeSE3ProjectXYZ *> edges;
-	//std::vector<cv::Point3f> points_origin; // Del
-	//std::vector<cv::Point3f> points_after; // Del
 
-	for (int32_t i = 0, ba_point_count = 0; i < frames_size; ++i)
+	for (int32_t i = p_start_index, ba_point_count = 0; i < frames_size; ++i)
 	{
 		Frame & cur_frame = p_frames[i];
 
@@ -166,7 +165,7 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		{
 			MapPoint *const cur_map_point = cur_frame.map_points_[j];
 
-			if ((!cur_map_point->is_bad_) && (cur_map_point->best_id_ == frame_id))
+			if ((!cur_map_point->is_bad_) && (cur_map_point->best_id_ == frame_id) && (cur_map_point->observation_count_ > 1))
 			{
 				const int32_t point_id = frames_size + ba_point_count;
 
@@ -182,12 +181,16 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 				vertex->setId(point_id);
 				vertex->setMarginalized(true);
 				optimizer.addVertex(vertex);
-
-				//points_origin.push_back(cv::Point3f((float)point_3d.x, (float)point_3d.y, (float)point_3d.z)); // Del
 				
 				for (auto mit : cur_map_point->observation_id_)
 				{
-					const int32_t index = frame_id_to_index.find(mit.first)->second;
+					std::map<int32_t, int32_t>::iterator find_result;
+					if ((find_result = frame_id_to_index.find(mit.first)) == frame_id_to_index_end)
+					{
+						continue;
+					}
+
+					const int32_t index = find_result->second;
 					const cv::Point2f point_2f = p_frames[index].point_2d_[mit.second];
 
 					g2o::EdgeSE3ProjectXYZ * edge = new g2o::EdgeSE3ProjectXYZ();
@@ -212,30 +215,29 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		}
 	}
 
-	//int32_t outliers = 0;
-
-	//for (int32_t i = 0, for_size = (int32_t)edges.size(); i < for_size; ++i)
-	//{
-	//	edges[i]->computeError();
-
-	//	if (edges[i]->chi2() > 5.991)
-	//	{
-	//		edges[i]->setLevel(1);
-	//		++outliers;
-	//	}
-	//	else
-	//	{
-	//		edges[i]->setLevel(0);
-	//	}
-	//}
-
-	//std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
-
 	std::cout << "Optimizing..." << std::endl;
 	optimizer.initializeOptimization();
-	optimizer.optimize(20);
+	optimizer.optimize(p_iteration_times);
 
-	for (int32_t i = 0, ba_point_count = 0; i < frames_size; ++i)
+	int32_t outliers = 0;
+	for (int32_t i = 0, for_size = (int32_t)edges.size(); i < for_size; ++i)
+	{
+		if (edges[i]->chi2() > 5.991)
+		{
+			edges[i]->setLevel(1);
+			++outliers;
+		}
+		else
+		{
+			edges[i]->setLevel(0);
+		}
+	}
+	std::cout << "Total edges: " << edges.size() << ", outliers: " << outliers << std::endl;
+	std::cout << "Optimizing(2)..." << std::endl;
+	optimizer.initializeOptimization(0);
+	optimizer.optimize(p_iteration_times / 2);
+
+	for (int32_t i = p_start_index, ba_point_count = 0; i < frames_size; ++i)
 	{
 		Frame & cur_frame = p_frames[i];
 
@@ -250,15 +252,13 @@ void Optimizer::BundleAdjustment(std::vector<Frame> & p_frames)
 		{
 			MapPoint *const cur_map_point = cur_frame.map_points_[j];
 
-			if ((!cur_map_point->is_bad_) && (cur_map_point->best_id_ == frame_id))
+			if ((!cur_map_point->is_bad_) && (cur_map_point->best_id_ == frame_id) && (cur_map_point->observation_count_ > 1))
 			{
 				g2o::VertexSBAPointXYZ * vertex_sba = static_cast<g2o::VertexSBAPointXYZ *>(optimizer.vertex(frames_size + ba_point_count));
 				g2o::Vector3D estimate_xyz = vertex_sba->estimate();
 
 				cv::Point3f point_3f((float)estimate_xyz(0), (float)estimate_xyz(1), (float)estimate_xyz(2));
 				cur_map_point->point_world_ = point_3f;
-
-				//points_after.push_back(point_3f); // Del
 
 				++ba_point_count;
 			}

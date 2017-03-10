@@ -8,12 +8,12 @@
 #include <thread>
 #include <opencv2/highgui/highgui.hpp>
 
-// #define DEBUG_DRAW
+#define DEBUG_DRAW
 #ifdef DEBUG_DRAW
 #include "../inc/draw_image.h"
 #endif // DEBUG_DRAW
 
-int main()
+int mai1n()
 {
 	std::cout << std::endl << "Initializing SLAM..." << std::endl;
 	Parameter parameter("parameter.yml");
@@ -24,7 +24,7 @@ int main()
 	std::cout << std::endl << "SLAM initialized! Start to track." << std::endl << std::endl;
 
 #ifdef DEBUG_DRAW
-	DrawImage draw_image("RGB Image", "", false);
+	DrawImage draw_image("RGB Image", "", true);
 #endif // DEBUG_DRAW
 
 	int32_t image_number = parameter.kImageNumber_;

@@ -47,7 +47,6 @@ private:
 	cv::Mat camera_D_;
 
 	float match_ratio_;
-	int32_t match_threshold_;
 	int32_t pnp_inliers_threshold_;
 
 	double local_error_sum_;

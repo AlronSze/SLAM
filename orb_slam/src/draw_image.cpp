@@ -18,7 +18,7 @@ DrawImage::DrawImage(const std::string p_rgb_name, const std::string p_depth_nam
 
 void DrawImage::toDrawFrame(const Frame & p_frame, const int32_t p_wait_time)
 {
-	cv::imshow(rgb_name_, p_frame.rgb_image_);
+	cv::imshow(rgb_name_, p_frame.bgr_image_);
 	if (!depth_name_.empty())
 	{
 		cv::imshow(depth_name_, p_frame.depth_image_);
@@ -26,7 +26,7 @@ void DrawImage::toDrawFrame(const Frame & p_frame, const int32_t p_wait_time)
 	if (show_key_point_)
 	{
 		cv::Mat key_point_image;
-		cv::drawKeypoints(p_frame.rgb_image_, p_frame.key_points_, key_point_image, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
+		cv::drawKeypoints(p_frame.bgr_image_, p_frame.key_points_, key_point_image, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
 		cv::imshow(key_point_name_, key_point_image);
 	}
 	cv::waitKey(p_wait_time);
