@@ -19,8 +19,8 @@
 #include "../inc/optimizer.h"
 #include "../inc/orb_matcher.h"
 
-LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) :
-	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0)
+LoopClosing::LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary, Map * p_map) :
+	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0), bow_vocabulary_(p_bow_vocabulary), map_(p_map)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -29,35 +29,13 @@ LoopClosing::LoopClosing(const Parameter & p_parameter, Map * p_map) :
 	temp_K.at<float>(1, 2) = p_parameter.kCameraParameters_.cy_;
 	temp_K.copyTo(camera_K_);
 
-	cv::Mat temp_D(5, 1, CV_32F);
-	temp_D.at<float>(0) = p_parameter.kCameraParameters_.d0_;
-	temp_D.at<float>(1) = p_parameter.kCameraParameters_.d1_;
-	temp_D.at<float>(2) = p_parameter.kCameraParameters_.d2_;
-	temp_D.at<float>(3) = p_parameter.kCameraParameters_.d3_;
-	temp_D.at<float>(4) = p_parameter.kCameraParameters_.d4_;
-	temp_D.copyTo(camera_D_);
-
-	vocabulary_dir_ = p_parameter.kVocabularyDir_;
 	dbow2_score_min_ = p_parameter.kDBoW2ScoreMin_;
 	dbow2_interval_min_ = p_parameter.kDBoW2IntervalMin_;
 	match_ratio_ = p_parameter.kORBMatchRatio_;
 	pnp_inliers_threshold_ = p_parameter.KPNPInliersThreshold_;
 	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
 
-	map_ = p_map;
-
-	if (!vocabulary_dir_.empty())
-	{
-		LoadVocabulary();
-	}
 	InitializeG2O();
-}
-
-void LoopClosing::LoadVocabulary()
-{
-	std::cout << "Loading vocabulary file..." << std::endl;
-	vocabulary_.loadFromTextFile(vocabulary_dir_);
-	std::cout << "Vocabulary Loaded!" << std::endl;
 }
 
 void LoopClosing::InitializeG2O()
@@ -127,25 +105,16 @@ void LoopClosing::OptimizeLast()
 
 	std::cout << "Optimized!" << std::endl;
 
+	std::cout << "Global Bundle Adjustment..." << std::endl;
+	Optimizer::BundleAdjustment(optimized_key_frames, 20);
+	std::cout << "Global Bundle Adjustment Finished!" << std::endl;
+
 	while (!map_->can_draw_)
 	{
 		thread_sleep(1);
 	}
 	map_->GetKeyFrames(optimized_key_frames, false);
-	while (!map_->can_draw_)
-	{
-		thread_sleep(1);
-	}
-
-	std::cout << "Bundle Adjustment..." << std::endl;
-	Optimizer::BundleAdjustment(optimized_key_frames, 20);
-	std::cout << "Bundle Adjustment Finished!" << std::endl;
-
-	while (!map_->can_draw_)
-	{
-		thread_sleep(1);
-	}
-	map_->GetKeyFrames(optimized_key_frames, true);
+	map_->vtk_flag_ = false;
 	while (!map_->can_draw_)
 	{
 		thread_sleep(1);
@@ -330,7 +299,7 @@ std::vector<int32_t> LoopClosing::GetLoopFrames()
 	#pragma omp parallel for
 	for (int32_t i = (int32_t)key_frames_.size() - 2 - 10; i >= 0; --i)
 	{
-		double score = vocabulary_.score(cur_frame_.bow_vector, key_frames_[i].bow_vector);
+		double score = bow_vocabulary_->score(cur_frame_.bow_vector, key_frames_[i].bow_vector);
 		// std::cout << "DBoW2 score with " << key_frames_[i].id_ << " : " << score << std::endl;
 		if ((score > dbow2_score_min_) && ((cur_frame_.id_ - key_frames_[i].id_) > dbow2_interval_min_))
 		{
@@ -347,7 +316,7 @@ std::vector<int32_t> LoopClosing::GetLoopFrames()
 void LoopClosing::SetBowVector(Frame & p_frame)
 {
 	DBoW2::FeatureVector feature_vector;
-	vocabulary_.transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 4);
+	bow_vocabulary_->transform(p_frame.GetDescriptorVector(), p_frame.bow_vector, feature_vector, 4);
 }
 
 bool LoopClosing::GetPose(const Frame & p_query_frame, const Frame & p_train_frame, Eigen::Isometry3d & p_transform,

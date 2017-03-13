@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>moc;h;cpp</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Debug">
+      <UniqueIdentifier>{0d6f5d1d-e09d-4974-aa34-75a134ef05ea}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{5b061193-3f46-4ba0-afd0-77b83cc01de2}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Source Files\src">
+      <UniqueIdentifier>{0f30ac17-53a9-44ae-a4ed-3c1d6e01e747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rd_part">
+      <UniqueIdentifier>{85bed91b-b592-42e8-8f7b-9cc3d27135e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rd_part">
+      <UniqueIdentifier>{2d195a03-2d24-4d2b-b6c4-c78c2c29d66b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\inc">
+      <UniqueIdentifier>{4e8a1b66-f987-4bfb-aaca-cdd432ed0e30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rd_part\dbow2">
+      <UniqueIdentifier>{7ee2524f-8f44-415b-ae47-eea78b049c06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rd_part\dbow2">
+      <UniqueIdentifier>{74cc36e9-d4ca-4604-bcda-21f9eb7dade4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\3rd_part\dbow2\DUtils">
+      <UniqueIdentifier>{2bf146a7-285b-4d66-b54d-335b866e3371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\3rd_part\dbow2\DUtils">
+      <UniqueIdentifier>{52354977-8adc-448e-b408-52b62bd5337d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mainwindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_mainwindow.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_mainwindow.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\qrc_mainwindow.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\draw_image.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frame.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\loop_closing.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\map.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\map_point.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\optimizer.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\orb_feature.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\orb_matcher.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parameter.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\system.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tracking.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\BowVector.cpp">
+      <Filter>Source Files\3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FeatureVector.cpp">
+      <Filter>Source Files\3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\FORB.cpp">
+      <Filter>Source Files\3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\ScoringObject.cpp">
+      <Filter>Source Files\3rd_part\dbow2</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\DUtils\Random.cpp">
+      <Filter>Source Files\3rd_part\dbow2\DUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_part\dbow2\DUtils\Timestamp.cpp">
+      <Filter>Source Files\3rd_part\dbow2\DUtils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="mainwindow.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mainwindow.qrc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mainwindow.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\draw_image.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\frame.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\loop_closing.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\map.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\map_point.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\optimizer.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\orb_feature.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\orb_matcher.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\parameter.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\system.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\tracking.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\BowVector.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FClass.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FeatureVector.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\FORB.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\ScoringObject.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\TemplatedVocabulary.h">
+      <Filter>Header Files\3rd_part\dbow2</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\DUtils\Random.h">
+      <Filter>Header Files\3rd_part\dbow2\DUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_part\dbow2\DUtils\Timestamp.h">
+      <Filter>Header Files\3rd_part\dbow2\DUtils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="slam.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="parameter.yml" />
+  </ItemGroup>
+</Project>

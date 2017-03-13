@@ -2,8 +2,8 @@
 x64/*
 *.*db
 
-orb_slam/*.pcd
-orb_slam/*.g2o
-orb_slam/*.txt
-orb_slam/*.bat
-orb_slam/x64/*
+slam/*.pcd
+slam/*.g2o
+slam/vocabulary/*.txt
+slam/*.bat
+slam/x64/*

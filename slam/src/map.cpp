@@ -8,11 +8,20 @@
 #define thread_sleep(x) usleep(x)
 #endif
 
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/core/eigen.hpp>
+
+#include <pcl/common/common.h>
+#include <pcl/features/normal_3d.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
+#include <vtkRenderWindow.h>
 
 #include "../inc/map_point.h"
 
-Map::Map(const Parameter & p_parameter) : can_draw_(true), draw_world_points_(false)
+Map::Map() :
+	can_draw_(true), draw_world_points_(false), is_running_(true),
+	vtk_flag_(false)
 {
 }
 
@@ -28,13 +37,14 @@ void Map::GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_fla
 
 void Map::Run()
 {
-	pcl::visualization::CloudViewer viewer("Point Cloud Viewer");
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_cloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+	global_cloud_.reset(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-	while (1)
+	while (is_running_)
 	{
-		if (!can_draw_)
+		if ((!can_draw_) && (!vtk_flag_))
 		{
+			global_cloud_->clear();
+
 			const int32_t key_frames_size = (int32_t)key_frames_.size();
 
 			if (!draw_world_points_)
@@ -47,11 +57,12 @@ void Map::Run()
 
 					#pragma omp critical (section)
 					{
-						*global_cloud += *new_cloud;
+						*global_cloud_ += *new_cloud;
 					}
 				}
 
-				viewer.showCloud(global_cloud);
+				//pcl_viewer_->removePointCloud();
+				//pcl_viewer_->addPointCloud<pcl::PointXYZRGBA>(global_cloud_);
 			}
 			else
 			{
@@ -62,17 +73,17 @@ void Map::Run()
 
 					#pragma omp critical (section)
 					{
-						*global_cloud += *new_cloud;
+						*global_cloud_ += *new_cloud;
 					}
 				}
 
-				pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud);
+				pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
 			}
 
-			global_cloud->clear();
 			key_frames_.clear();
 
 			can_draw_ = true;
+			vtk_flag_ = true;
 		}
 
 		thread_sleep(1000);

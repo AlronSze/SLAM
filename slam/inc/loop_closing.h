@@ -12,7 +12,7 @@
 class LoopClosing
 {
 public:
-	LoopClosing(const Parameter & p_parameter, Map * p_map);
+	LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary, Map * p_map);
 
 	void GetKeyFrame(const Frame & p_frame);
 	void OptimizeLast();
@@ -21,7 +21,6 @@ public:
 
 private:
 	void SetBowVector(Frame & p_frame);
-	void LoadVocabulary();
 	void InitializeG2O();
 	void AddCurFrameToGraph();
 	void ModifyMapPoints(const int32_t p_frame_id, const std::vector<cv::DMatch> & p_matches, const std::vector<int8_t> & p_matches_flag);
@@ -38,13 +37,11 @@ private:
 
 	g2o::SparseOptimizer optimizer_;
 
-	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> vocabulary_;
-	std::string vocabulary_dir_;
+	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * bow_vocabulary_;
 	double dbow2_score_min_;
 	int32_t dbow2_interval_min_;
 
 	cv::Mat camera_K_;
-	cv::Mat camera_D_;
 
 	float match_ratio_;
 	int32_t pnp_inliers_threshold_;

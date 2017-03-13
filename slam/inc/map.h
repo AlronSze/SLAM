@@ -6,12 +6,12 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h>
 
-#include "parameter.h"
+#include <QVTKWidget.h>
 
 class Map
 {
 public:
-	Map(const Parameter & p_parameter);
+	Map();
 	void GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_flag);
 	void Run();
 
@@ -22,7 +22,10 @@ private:
 
 public:
 	bool can_draw_;
+	bool vtk_flag_;
 	bool draw_world_points_;
+	bool is_running_;
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_cloud_;
 
 private:
 	std::vector<Frame> key_frames_;
