@@ -24,7 +24,6 @@
 System::System(openni::VideoStream * p_color_stream, openni::VideoStream * p_depth_stream) :
 	map_(NULL), is_running_(false), color_stream_(p_color_stream), depth_stream_(p_depth_stream)
 {
-
 }
 
 System::~System()

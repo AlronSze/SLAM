@@ -44,7 +44,7 @@ private:
 	cv::Mat cur_rotation_;
 	cv::Mat cur_translation_;
 
-	Frame *cur_frame_;
+	Frame * cur_frame_;
 	Frame last_frame_;
 
 	std::vector<Frame> key_frames_;
@@ -55,7 +55,7 @@ private:
 
 	QLineEdit * value_keyframe_count_;
 
-	LoopClosing *loop_closing_;
+	LoopClosing * loop_closing_;
 
 	Eigen::Isometry3d last_transform_;
 };

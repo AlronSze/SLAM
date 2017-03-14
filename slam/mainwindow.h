@@ -40,7 +40,7 @@ private:
 
 public slots:
 	void SlotSelectYML();
-	void SlotApplyYML();
+	void SlotLoadYML();
 	void SlotSelectVocabulary();
 	void SlotLoadVocabulary();
 	void SlotStartSLAM();

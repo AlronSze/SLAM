@@ -52,7 +52,7 @@ MainWindow::~MainWindow()
 void MainWindow::InitializeSlots()
 {
 	connect(ui.button_select_yml_, SIGNAL(clicked()), this, SLOT(SlotSelectYML()));
-	connect(ui.button_apply_yml_, SIGNAL(clicked()), this, SLOT(SlotApplyYML()));
+	connect(ui.button_load_yml_, SIGNAL(clicked()), this, SLOT(SlotLoadYML()));
 	connect(ui.button_select_vocabulary_, SIGNAL(clicked()), this, SLOT(SlotSelectVocabulary()));
 	connect(ui.button_load_vocabulary_, SIGNAL(clicked()), this, SLOT(SlotLoadVocabulary()));
 	connect(ui.button_start_, SIGNAL(clicked()), this, SLOT(SlotStartSLAM()));
@@ -89,35 +89,44 @@ void MainWindow::SlotSelectYML()
 {
 	QString file_name = QFileDialog::getOpenFileName(this, NULL, NULL, "*.yml");
 	ui.path_yml_->setText(file_name);
-	ui.button_apply_yml_->setEnabled(!file_name.isEmpty());
-	ui.text_yml_->setText("Please open and apply a yml file.");
+	ui.button_load_yml_->setEnabled(!file_name.isEmpty());
+	ui.text_yml_->setText("Please open and load a YML file.");
 }
 
-void MainWindow::SlotApplyYML()
+void MainWindow::SlotLoadYML()
 {
 	if (parameter_)
 	{
 		delete parameter_;
 	}
 
-	parameter_ = new Parameter(ui.path_yml_->text().toStdString());
-	//QMessageBox::information(this, "Information", "Parameters applied successfully!");
-
-	QString temp;
-	ui.value_fx_->setText(temp.setNum(parameter_->kCameraParameters_.fx_));
-	ui.value_fy_->setText(temp.setNum(parameter_->kCameraParameters_.fy_));
-	ui.value_cx_->setText(temp.setNum(parameter_->kCameraParameters_.cx_));
-	ui.value_cy_->setText(temp.setNum(parameter_->kCameraParameters_.cy_));
-	ui.value_scale_->setText(temp.setNum(parameter_->kCameraParameters_.scale_));
-	ui.value_d0_->setText(temp.setNum(parameter_->kCameraParameters_.d0_));
-	ui.value_d1_->setText(temp.setNum(parameter_->kCameraParameters_.d1_));
-	ui.value_d2_->setText(temp.setNum(parameter_->kCameraParameters_.d2_));
-	ui.value_d3_->setText(temp.setNum(parameter_->kCameraParameters_.d3_));
-	ui.value_d4_->setText(temp.setNum(parameter_->kCameraParameters_.d4_));
-	ui.button_modify_camera_->setEnabled(true);
-
-	yml_flag_ = true;
-	ui.text_yml_->setText("Parameters applied successfully!");
+	parameter_ = new Parameter();
+	if (parameter_->LoadYMLFile(ui.path_yml_->text().toStdString()))
+	{
+		QString temp;
+		ui.value_fx_->setText(temp.setNum(parameter_->kCameraParameters_.fx_));
+		ui.value_fy_->setText(temp.setNum(parameter_->kCameraParameters_.fy_));
+		ui.value_cx_->setText(temp.setNum(parameter_->kCameraParameters_.cx_));
+		ui.value_cy_->setText(temp.setNum(parameter_->kCameraParameters_.cy_));
+		ui.value_scale_->setText(temp.setNum(parameter_->kCameraParameters_.scale_));
+		ui.value_d0_->setText(temp.setNum(parameter_->kCameraParameters_.d0_));
+		ui.value_d1_->setText(temp.setNum(parameter_->kCameraParameters_.d1_));
+		ui.value_d2_->setText(temp.setNum(parameter_->kCameraParameters_.d2_));
+		ui.value_d3_->setText(temp.setNum(parameter_->kCameraParameters_.d3_));
+		ui.value_d4_->setText(temp.setNum(parameter_->kCameraParameters_.d4_));
+		
+		ui.button_modify_camera_->setEnabled(true);
+		yml_flag_ = true;
+		//QMessageBox::information(this, "Information", "Parameters applied successfully!");
+		ui.text_yml_->setText("Parameters applied successfully!");
+	}
+	else
+	{
+		ui.button_modify_camera_->setEnabled(false);
+		yml_flag_ = false;
+		//QMessageBox::warning(this, "Warning", "Parameters loaded failed, please try again.");
+		ui.text_yml_->setText("Parameters loaded failed, please try again.");
+	}
 }
 
 void MainWindow::SlotSelectVocabulary()
@@ -142,13 +151,13 @@ void MainWindow::SlotLoadVocabulary()
 	if (bow_vocabulary_->loadFromTextFile(ui.path_vocabulary_->text().toStdString()))
 	{
 		voc_flag_ = true;
-		//QMessageBox::information(this, "Information", "BoW Vocabulary Loaded successfully!");
+		//QMessageBox::information(this, "Information", "BoW vocabulary loaded successfully!");
 		ui.text_vocabulary_->setText("BoW vocabulary loaded successfully!");
 	}
 	else
 	{
 		voc_flag_ = false;
-		//QMessageBox::warning(this, "Warning", "BoW Vocabulary Loaded failed!");
+		//QMessageBox::warning(this, "Warning", "BoW vocabulary loaded failed, please try again.");
 		ui.text_vocabulary_->setText("BoW vocabulary loaded failed, please try again.");
 	}
 }
@@ -178,7 +187,7 @@ void MainWindow::SlotStartSLAM()
 	}
 	if (!yml_flag_)
 	{
-		QMessageBox::warning(this, "Warning", "Please apply parameters before starting SLAM!");
+		QMessageBox::warning(this, "Warning", "Please load parameters before starting SLAM!");
 		return;
 	}
 	if (!voc_flag_)
@@ -191,7 +200,7 @@ void MainWindow::SlotStartSLAM()
 	ui.button_start_->setEnabled(false);
 	ui.button_close_device_->setEnabled(false);
 	ui.button_select_yml_->setEnabled(false);
-	ui.button_apply_yml_->setEnabled(false);
+	ui.button_load_yml_->setEnabled(false);
 	ui.button_modify_camera_->setEnabled(false);
 	ui.button_select_vocabulary_->setEnabled(false);
 	ui.button_load_vocabulary_->setEnabled(false);
@@ -223,10 +232,11 @@ void MainWindow::SlotStopSLAM()
 	delete system_;
 	system_ = NULL;
 
+	ui.value_track_status_->setText("Stop");
 	ui.button_start_->setEnabled(true);
 	ui.button_close_device_->setEnabled(true);
 	ui.button_select_yml_->setEnabled(true);
-	ui.button_apply_yml_->setEnabled(true);
+	ui.button_load_yml_->setEnabled(true);
 	ui.button_modify_camera_->setEnabled(true);
 	ui.button_select_vocabulary_->setEnabled(true);
 	ui.button_load_vocabulary_->setEnabled(true);

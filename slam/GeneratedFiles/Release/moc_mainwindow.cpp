@@ -20,7 +20,7 @@
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_MainWindow_t {
     QByteArrayData data[13];
-    char stringdata0[186];
+    char stringdata0[185];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -32,19 +32,19 @@ static const qt_meta_stringdata_MainWindow_t qt_meta_stringdata_MainWindow = {
 QT_MOC_LITERAL(0, 0, 10), // "MainWindow"
 QT_MOC_LITERAL(1, 11, 13), // "SlotSelectYML"
 QT_MOC_LITERAL(2, 25, 0), // ""
-QT_MOC_LITERAL(3, 26, 12), // "SlotApplyYML"
-QT_MOC_LITERAL(4, 39, 20), // "SlotSelectVocabulary"
-QT_MOC_LITERAL(5, 60, 18), // "SlotLoadVocabulary"
-QT_MOC_LITERAL(6, 79, 13), // "SlotStartSLAM"
-QT_MOC_LITERAL(7, 93, 12), // "SlotStopSLAM"
-QT_MOC_LITERAL(8, 106, 13), // "SlotUpdateVTK"
-QT_MOC_LITERAL(9, 120, 16), // "SlotModifyCamera"
-QT_MOC_LITERAL(10, 137, 17), // "SlotRefreshDevice"
-QT_MOC_LITERAL(11, 155, 14), // "SlotOpenDevice"
-QT_MOC_LITERAL(12, 170, 15) // "SlotCloseDevice"
+QT_MOC_LITERAL(3, 26, 11), // "SlotLoadYML"
+QT_MOC_LITERAL(4, 38, 20), // "SlotSelectVocabulary"
+QT_MOC_LITERAL(5, 59, 18), // "SlotLoadVocabulary"
+QT_MOC_LITERAL(6, 78, 13), // "SlotStartSLAM"
+QT_MOC_LITERAL(7, 92, 12), // "SlotStopSLAM"
+QT_MOC_LITERAL(8, 105, 13), // "SlotUpdateVTK"
+QT_MOC_LITERAL(9, 119, 16), // "SlotModifyCamera"
+QT_MOC_LITERAL(10, 136, 17), // "SlotRefreshDevice"
+QT_MOC_LITERAL(11, 154, 14), // "SlotOpenDevice"
+QT_MOC_LITERAL(12, 169, 15) // "SlotCloseDevice"
 
     },
-    "MainWindow\0SlotSelectYML\0\0SlotApplyYML\0"
+    "MainWindow\0SlotSelectYML\0\0SlotLoadYML\0"
     "SlotSelectVocabulary\0SlotLoadVocabulary\0"
     "SlotStartSLAM\0SlotStopSLAM\0SlotUpdateVTK\0"
     "SlotModifyCamera\0SlotRefreshDevice\0"
@@ -101,7 +101,7 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->SlotSelectYML(); break;
-        case 1: _t->SlotApplyYML(); break;
+        case 1: _t->SlotLoadYML(); break;
         case 2: _t->SlotSelectVocabulary(); break;
         case 3: _t->SlotLoadVocabulary(); break;
         case 4: _t->SlotStartSLAM(); break;

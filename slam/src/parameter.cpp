@@ -3,9 +3,13 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 
-Parameter::Parameter(const std::string p_yml_name)
+bool Parameter::LoadYMLFile(const std::string p_yml_name)
 {
 	cv::FileStorage file_storage(p_yml_name, cv::FileStorage::READ);
+	if (!file_storage.isOpened())
+	{
+		return false;
+	}
 
 	// image number
 	file_storage["image_number"] >> kImageNumber_;
@@ -53,6 +57,8 @@ Parameter::Parameter(const std::string p_yml_name)
 	file_storage.release();
 
 	Print();
+
+	return true;
 }
 
 void Parameter::Print()

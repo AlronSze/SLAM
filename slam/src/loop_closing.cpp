@@ -1,13 +1,5 @@
 #include "../inc/loop_closing.h"
 
-#ifdef _WIN32
-	#include <windows.h>
-	#define thread_sleep(x) Sleep(x)
-#elif __linux__
-	#include <unistd.h>
-	#define thread_sleep(x) usleep(x)
-#endif
-
 #include <g2o/core/block_solver.h>
 #include <g2o/core/optimization_algorithm_levenberg.h>
 #include <g2o/core/robust_kernel_impl.h>
@@ -181,9 +173,9 @@ void LoopClosing::LoopClose()
 {
 	int32_t key_frames_size = (int32_t)key_frames_.size();
 
-	std::cout << "Local Bundle Adjustment..." << std::endl;
-	const int32_t ba_start_index = ((key_frames_size - 5) >= 0) ? (key_frames_size - 5) : 0;
-	Optimizer::BundleAdjustment(key_frames_, 10, ba_start_index);
+	//std::cout << "Local Bundle Adjustment..." << std::endl;
+	//const int32_t ba_start_index = ((key_frames_size - 5) >= 0) ? (key_frames_size - 5) : 0;
+	//Optimizer::BundleAdjustment(key_frames_, 10, ba_start_index);
 
 	std::cout << "Detecting local loop closure..." << std::endl;
 	const int32_t start_index = key_frames_size - 2;

@@ -5,7 +5,8 @@
 class Parameter
 {
 public:
-	Parameter(const std::string p_yml_name);
+	Parameter() {}
+	bool LoadYMLFile(const std::string p_yml_name);
 
 private:
 	void Print();

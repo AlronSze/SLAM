@@ -67,8 +67,6 @@ void Map::Run()
 				}
 			}
 
-			//pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
-
 			key_frames_.clear();
 			vtk_flag_ = true;
 			can_draw_ = false;
@@ -78,6 +76,7 @@ void Map::Run()
 
 		if (last_flag_)
 		{
+			//pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
 			break;
 		}
 
