@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QLineEdit>
+
 #include <g2o/core/sparse_optimizer.h>
 
 #include "../3rd_part/dbow2/FORB.h"
@@ -12,7 +14,8 @@
 class LoopClosing
 {
 public:
-	LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary, Map * p_map);
+	LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary,
+		Map * p_map, QLineEdit * p_value_loop_count);
 
 	void GetKeyFrame(const Frame & p_frame);
 	void OptimizeLast();
@@ -34,6 +37,7 @@ private:
 	Frame cur_frame_;
 	std::vector<Frame> key_frames_;
 	int32_t frames_count_;
+	int32_t global_loop_count_;
 
 	g2o::SparseOptimizer optimizer_;
 
@@ -49,6 +53,8 @@ private:
 	double local_error_sum_;
 	double global_error_sum_;
 	double chi2_threshold_;
+
+	QLineEdit * value_loop_count_;
 
 	Map * map_;
 };

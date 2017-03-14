@@ -13,6 +13,7 @@ VTK_MODULE_INIT(vtkInteractionStyle);
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/common/common.h>
 #include <vtkRenderWindow.h>
+#include <OpenNI.h>
 
 #include <QPushButton>
 #include <QTimer>
@@ -30,6 +31,12 @@ class MainWindow : public QMainWindow
 
 public:
 	MainWindow(QWidget *parent = Q_NULLPTR);
+	~MainWindow();
+
+private:
+	void InitializeSlots();
+	void InitializeVTK();
+	void InitializeOpenNI();
 
 public slots:
 	void SlotSelectYML();
@@ -40,15 +47,26 @@ public slots:
 	void SlotStopSLAM();
 	void SlotUpdateVTK();
 	void SlotModifyCamera();
+	void SlotRefreshDevice();
+	void SlotOpenDevice();
+	void SlotCloseDevice();
 
 public:
 	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * bow_vocabulary_;
 	pcl::visualization::PCLVisualizer::Ptr pcl_viewer_;
+	openni::VideoStream * color_stream_;
+	openni::VideoStream * depth_stream_;
 
 private:
 	Ui::MainWindowClass ui;
 	Parameter * parameter_;
 	System * system_;
 	std::thread * system_thread_;
-	QTimer * vtk_timer_;
+	QTimer vtk_timer_;
+	openni::Device rgbd_device_;
+	openni::Array<openni::DeviceInfo> rgbd_device_list_;
+
+	bool dev_flag_;
+	bool yml_flag_;
+	bool voc_flag_;
 };

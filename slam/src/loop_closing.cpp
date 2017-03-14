@@ -19,8 +19,10 @@
 #include "../inc/optimizer.h"
 #include "../inc/orb_matcher.h"
 
-LoopClosing::LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary, Map * p_map) :
-	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0), bow_vocabulary_(p_bow_vocabulary), map_(p_map)
+LoopClosing::LoopClosing(const Parameter & p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * p_bow_vocabulary,
+	Map * p_map, QLineEdit * p_value_loop_count) :
+	local_error_sum_(0.0), global_error_sum_(0.0), frames_count_(0), bow_vocabulary_(p_bow_vocabulary), map_(p_map),
+	value_loop_count_(p_value_loop_count), global_loop_count_(0)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -63,10 +65,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		//if (frames_count_ >= 10)
 		//{
 		//	frames_count_ = 0;
-		//	if (!map_->can_draw_)
-		//	{
-		//		map_->GetKeyFrames(key_frames_, false);
-		//	}
+		//	map_->GetKeyFrames(key_frames_);
 		//}
 	}
 	else
@@ -78,11 +77,7 @@ void LoopClosing::GetKeyFrame(const Frame & p_frame)
 		vertex->setFixed(true);
 		optimizer_.addVertex(vertex);
 
-		while (!map_->can_draw_)
-		{
-			thread_sleep(1);
-		}
-		map_->GetKeyFrames(key_frames_, false);
+		map_->GetKeyFrames(key_frames_);
 	}
 
 	SaveG2OFile("tracking.g2o");
@@ -109,16 +104,7 @@ void LoopClosing::OptimizeLast()
 	Optimizer::BundleAdjustment(optimized_key_frames, 20);
 	std::cout << "Global Bundle Adjustment Finished!" << std::endl;
 
-	while (!map_->can_draw_)
-	{
-		thread_sleep(1);
-	}
-	map_->GetKeyFrames(optimized_key_frames, false);
-	map_->vtk_flag_ = false;
-	while (!map_->can_draw_)
-	{
-		thread_sleep(1);
-	}
+	map_->GetKeyFrames(optimized_key_frames, true);
 }
 
 void LoopClosing::AddCurFrameToGraph()
@@ -248,6 +234,8 @@ void LoopClosing::LoopClose()
 			continue;
 		}
 
+		++global_loop_count_;
+
 		g2o::EdgeSE3* edge = new g2o::EdgeSE3();
 		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(key_frames_[loop_frame_index].id_));
 		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3*> (optimizer_.vertex(cur_frame_.id_));
@@ -285,11 +273,10 @@ void LoopClosing::LoopClose()
 		frames_count_ = 0;
 		std::cout << "Optimized!" << std::endl;
 
-		if (map_->can_draw_)
-		{
-			map_->GetKeyFrames(optimized_key_frames, false);
-		}
+		map_->GetKeyFrames(optimized_key_frames);
 	}
+
+	value_loop_count_->setText(QString().setNum(global_loop_count_));
 }
 
 std::vector<int32_t> LoopClosing::GetLoopFrames()

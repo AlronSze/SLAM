@@ -19,71 +19,66 @@
 
 #include "../inc/map_point.h"
 
-Map::Map() :
-	can_draw_(true), draw_world_points_(false), is_running_(true),
-	vtk_flag_(false)
+Map::Map() : can_draw_(true), last_flag_(false), vtk_flag_(false)
 {
 }
 
-void Map::GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_flag)
+void Map::GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_last_flag)
 {
-	key_frames_ = p_frame;
-	draw_world_points_ = p_draw_flag;
-	if (key_frames_.size() != 0)
+	last_flag_ = p_last_flag;
+
+	if (last_flag_)
 	{
-		can_draw_ = false;
+		mutex_.lock();
 	}
+	else if (!mutex_.try_lock())
+	{
+		return;
+	}
+
+	key_frames_ = p_frame;
+	can_draw_ = (key_frames_.size() != 0) ? true : false;
+
+	mutex_.unlock();
 }
 
 void Map::Run()
 {
 	global_cloud_.reset(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-	while (is_running_)
+	while (1)
 	{
-		if ((!can_draw_) && (!vtk_flag_))
+		if (can_draw_ && ((!vtk_flag_) || last_flag_))
 		{
-			global_cloud_->clear();
+			mutex_.lock();
 
+			global_cloud_->clear();
 			const int32_t key_frames_size = (int32_t)key_frames_.size();
 
-			if (!draw_world_points_)
+			#pragma omp parallel for
+			for (int32_t i = 0; i < key_frames_size; ++i)
 			{
-				#pragma omp parallel for
-				for (int32_t i = 0; i < key_frames_size; ++i)
+				// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
+				pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWhole(key_frames_[i]);
+
+				#pragma omp critical (section)
 				{
-					// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloud(key_frames_[i]);
-					pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWhole(key_frames_[i]);
-
-					#pragma omp critical (section)
-					{
-						*global_cloud_ += *new_cloud;
-					}
+					*global_cloud_ += *new_cloud;
 				}
-
-				//pcl_viewer_->removePointCloud();
-				//pcl_viewer_->addPointCloud<pcl::PointXYZRGBA>(global_cloud_);
 			}
-			else
-			{
-				#pragma omp parallel for
-				for (int32_t i = 0; i < key_frames_size; ++i)
-				{
-					pcl::PointCloud<pcl::PointXYZRGBA>::Ptr new_cloud = GetPointCloudOfWorldPoints(key_frames_[i]);
 
-					#pragma omp critical (section)
-					{
-						*global_cloud_ += *new_cloud;
-					}
-				}
-
-				pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
-			}
+			//pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
 
 			key_frames_.clear();
-
-			can_draw_ = true;
 			vtk_flag_ = true;
+			can_draw_ = false;
+
+			mutex_.unlock();
+		}
+
+		if (last_flag_)
+		{
+			break;
 		}
 
 		thread_sleep(1000);

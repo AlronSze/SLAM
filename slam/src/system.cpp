@@ -15,73 +15,50 @@
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/legacy/legacy.hpp>
-#include <OpenNI.h>
 
 #include "../inc/frame.h"
 #include "../inc/draw_image.h"
 #include "../inc/tracking.h"
 #include "../inc/loop_closing.h"
 
+System::System(openni::VideoStream * p_color_stream, openni::VideoStream * p_depth_stream) :
+	map_(NULL), is_running_(false), color_stream_(p_color_stream), depth_stream_(p_depth_stream)
+{
+
+}
+
+System::~System()
+{
+	if (map_)
+	{
+		delete map_;
+	}
+}
+
 void System::Run()
 {
-	std::cout << "Initializing OpenNI..." << std::endl;
+	bool track_result;
+	int32_t lost_count = 0;
 
-	openni::OpenNI::initialize();
-
-	openni::Device any_device;
-	if (any_device.open(openni::ANY_DEVICE) != openni::STATUS_OK)
-	{
-		std::cout << "Cannot find any device, please try again!" << std::endl;
-		openni::OpenNI::shutdown();
-		return;
-	}
-
-	openni::VideoStream color_stream, depth_stream;
-	color_stream.create(any_device, openni::SENSOR_COLOR);
-	depth_stream.create(any_device, openni::SENSOR_DEPTH);
-
-	openni::VideoMode color_mode;
-	color_mode.setResolution(640, 480);
-	color_mode.setFps(30);
-	color_mode.setPixelFormat(openni::PIXEL_FORMAT_RGB888);
-	color_stream.setVideoMode(color_mode);
-	//color_stream.setMirroringEnabled(false);
-
-	openni::VideoMode depth_mode;
-	depth_mode.setResolution(640, 480);
-	depth_mode.setFps(30);
-	depth_mode.setPixelFormat(openni::PIXEL_FORMAT_DEPTH_1_MM);
-	depth_stream.setVideoMode(depth_mode);
-	//depth_stream.setMirroringEnabled(false);
-
-	if (any_device.isImageRegistrationModeSupported(openni::IMAGE_REGISTRATION_DEPTH_TO_COLOR))
-	{
-		any_device.setImageRegistrationMode(openni::IMAGE_REGISTRATION_DEPTH_TO_COLOR);
-	}
-
-	color_stream.start();
-	depth_stream.start();
-
-	std::cout << depth_stream.getMaxPixelValue() << std::endl;
-
-	openni::VideoFrameRef color_frame, depth_frame;
-
-	std::cout << "OpenNI Initialized!" << std::endl << std::endl;
-
-	DrawImage draw_image(label_color_, label_depth_, true);
+	DrawImage draw_image(label_color_, label_depth_, parameter_->kCameraParameters_.scale_, true);
 	map_ = new Map();
 	std::thread * map_thread = new std::thread(&Map::Run, map_);
-	LoopClosing loop_closing(*parameter_, bow_vocabulary_, map_);
-	Tracking tracking(*parameter_, &loop_closing);
+	LoopClosing loop_closing(*parameter_, bow_vocabulary_, map_, value_loop_count_);
+	Tracking tracking(*parameter_, &loop_closing, value_keyframe_count_);
 
 	std::cout << "SLAM initialized! Start to track." << std::endl << std::endl;
+
+	openni::VideoFrameRef color_frame;
+	openni::VideoFrameRef depth_frame;
+	color_stream_->start();
+	depth_stream_->start();
 
 	is_running_ = true;
 
 	for (int32_t i = 1; is_running_; ++i)
 	{
-		color_stream.readFrame(&color_frame);
-		depth_stream.readFrame(&depth_frame);
+		color_stream_->readFrame(&color_frame);
+		depth_stream_->readFrame(&depth_frame);
 
 		cv::Mat rgb_image(color_frame.getHeight(), color_frame.getWidth(), CV_8UC3, (void *)color_frame.getData());
 		cv::Mat depth_image(depth_frame.getHeight(), depth_frame.getWidth(), CV_16UC1, (void *)depth_frame.getData());
@@ -98,25 +75,36 @@ void System::Run()
 
 		draw_image.DrawImages(rgb_image_mirror, depth_image_mirror);
 
-		tracking.GetFrame(frame);
+		track_result = tracking.GetFrame(frame);
 		delete frame;
+
+		if (track_result)
+		{
+			lost_count = 0;
+			value_track_status_->setText("Tracking");
+		}
+		else
+		{
+			++lost_count;
+			if (lost_count >= 20)
+			{
+				value_track_status_->setText("Lost");
+			}
+		}
+		value_frame_count_->setText(QString().setNum(i));
+
 		std::cout << std::endl;
 
 		thread_sleep(1);
 	}
 
-	color_stream.destroy();
-	depth_stream.destroy();
-
-	any_device.close();
-
-	openni::OpenNI::shutdown();
+	color_stream_->stop();
+	depth_stream_->stop();
 
 	loop_closing.OptimizeLast();
 
-	map_->is_running_ = false;
 	map_thread->join();
-	thread_over_ = true;
+	delete map_thread;
 }
 
 void System::MirrorImage(const cv::Mat & p_source, cv::Mat & p_destination)

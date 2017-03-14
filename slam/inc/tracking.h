@@ -1,6 +1,8 @@
 #pragma once
 
-#include <deque>
+#include <QLineEdit>
+
+#include <vector>
 #include <opencv2/core/core.hpp>
 
 #include "parameter.h"
@@ -10,13 +12,13 @@
 class Tracking
 {
 public:
-	Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing);
+	Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing, QLineEdit * p_value_keyframe_count);
 	~Tracking();
 
-	void GetFrame(Frame * p_frame);
+	bool GetFrame(Frame * p_frame);
 
 private:
-	void Track();
+	bool Track();
 	bool Initialization();
 	bool TrackWithLastKeyFrame();
 	bool Relocalization();
@@ -49,6 +51,9 @@ private:
 	std::vector<cv::DMatch> cur_matches_;
 	std::vector<int8_t> cur_matches_flag_;
 	int32_t cur_matches_size_;
+	int32_t key_frames_count_;
+
+	QLineEdit * value_keyframe_count_;
 
 	LoopClosing *loop_closing_;
 
@@ -65,6 +70,7 @@ inline bool Tracking::NeedInsertKeyFrame(const bool p_flag)
 inline void Tracking::UpdateKeyFrames()
 {
 	key_frames_.push_back(*cur_frame_);
+	++key_frames_count_;
 	loop_closing_->GetKeyFrame(*cur_frame_);
 	last_frame_ = *cur_frame_;
 }

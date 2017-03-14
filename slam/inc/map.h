@@ -2,6 +2,8 @@
 
 #include "frame.h"
 
+#include <mutex>
+
 #include <pcl/common/transforms.h>
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h>
@@ -12,7 +14,7 @@ class Map
 {
 public:
 	Map();
-	void GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_draw_flag);
+	void GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_last_flag = false);
 	void Run();
 
 private:
@@ -23,10 +25,10 @@ private:
 public:
 	bool can_draw_;
 	bool vtk_flag_;
-	bool draw_world_points_;
-	bool is_running_;
+	bool last_flag_;
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_cloud_;
 
 private:
 	std::vector<Frame> key_frames_;
+	std::mutex mutex_;
 };

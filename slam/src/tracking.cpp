@@ -7,8 +7,9 @@
 #include "../inc/map_point.h"
 #include "../inc/orb_matcher.h"
 
-Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing) :
-	tracking_state_(INITIALIZE), loop_closing_(p_loop_closing), last_transform_(Eigen::Isometry3d::Identity())
+Tracking::Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing, QLineEdit * p_value_keyframe_count) :
+	tracking_state_(INITIALIZE), loop_closing_(p_loop_closing), last_transform_(Eigen::Isometry3d::Identity()),
+	key_frames_count_(0), value_keyframe_count_(p_value_keyframe_count)
 {
 	cv::Mat temp_K = cv::Mat::eye(3, 3, CV_32F);
 	temp_K.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -45,10 +46,12 @@ Tracking::~Tracking()
 	}
 }
 
-void Tracking::GetFrame(Frame * p_frame)
+bool Tracking::GetFrame(Frame * p_frame)
 {
+	bool track_result;
 	cur_frame_ = p_frame;
-	Track();
+	track_result = Track();
+	return track_result;
 }
 
 void Tracking::ModifyMapPoints()
@@ -93,7 +96,7 @@ void Tracking::ModifyMapPoints()
 	}
 }
 
-void Tracking::Track()
+bool Tracking::Track()
 {
 	bool is_tracked = true;
 	bool is_relocalized = false;
@@ -107,7 +110,7 @@ void Tracking::Track()
 			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			UpdateKeyFrames();
-			return;
+			return true;
 		}
 	}
 	else if (tracking_state_ == OK)
@@ -124,13 +127,23 @@ void Tracking::Track()
 	{
 		if (NeedInsertKeyFrame(is_relocalized))
 		{
-			std::cout << "Insert New Key Frame, number: " << key_frames_.size() + 1 << std::endl;
 			cur_frame_->InitializeMapPoints();
 			cur_frame_->SetPointCloud();
 			cur_frame_->ReleaseImage();
 			ModifyMapPoints();
 			UpdateKeyFrames();
+			value_keyframe_count_->setText(QString().setNum(key_frames_count_));
+			std::cout << "Insert New Key Frame, number: " << key_frames_count_ << std::endl;
 		}
+	}
+
+	if (tracking_state_ == LOST)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
 	}
 }
 
@@ -164,7 +177,7 @@ bool Tracking::Relocalization()
 {
 	std::cout << "Tracking Relocalizing..." << std::endl;
 
-	const int32_t start_index = key_frames_.size() - 1;
+	const int32_t start_index = key_frames_count_ - 1;
 	const int32_t end_index = ((start_index - 10) > 0) ? (start_index - 10) : 0;
 	for (int32_t i = start_index, delete_frames_count = 0; i >= end_index; --i)
 	{
@@ -201,6 +214,7 @@ bool Tracking::Relocalization()
 			}
 
 			key_frames_.pop_back();
+			--key_frames_count_;
 			loop_closing_->PopKeyFrame();
 		}
 
