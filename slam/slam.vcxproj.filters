@@ -91,12 +91,6 @@
     <ClCompile Include="src\map.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\map_point.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\optimizer.cpp">
-      <Filter>Source Files\src</Filter>
-    </ClCompile>
     <ClCompile Include="src\orb_feature.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
@@ -130,6 +124,9 @@
     <ClCompile Include="3rd_part\dbow2\DUtils\Timestamp.cpp">
       <Filter>Source Files\3rd_part\dbow2\DUtils</Filter>
     </ClCompile>
+    <ClCompile Include="src\pnp_solver.cpp">
+      <Filter>Source Files\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">
@@ -156,12 +153,6 @@
       <Filter>Header Files\inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\map.h">
-      <Filter>Header Files\inc</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\map_point.h">
-      <Filter>Header Files\inc</Filter>
-    </ClInclude>
-    <ClInclude Include="inc\optimizer.h">
       <Filter>Header Files\inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\orb_feature.h">
@@ -203,11 +194,14 @@
     <ClInclude Include="3rd_part\dbow2\DUtils\Timestamp.h">
       <Filter>Header Files\3rd_part\dbow2\DUtils</Filter>
     </ClInclude>
+    <ClInclude Include="inc\pnp_solver.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="slam.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="parameter.yml" />
+    <None Include="yml\parameter.yml" />
   </ItemGroup>
 </Project>

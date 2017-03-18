@@ -12,8 +12,6 @@ private:
 	void Print();
 
 public:
-	// image number
-	int32_t kImageNumber_;
 
 	// camera parameters
 	struct CameraParameters
@@ -38,18 +36,12 @@ public:
 	int kORBThresholdMin_;
 	float kORBMatchRatio_;
 
-	// dataset directory
-	std::string kDatasetDir_;
-
 	// point cloud filter parameters
 	int kFilterInterval_;
 	float kFilterDepthMax_;
 
 	// pnp parameters
 	int KPNPInliersThreshold_;
-
-	// vocabulary directory
-	std::string kVocabularyDir_;
 
 	// dbow2 loop parameters
 	double kDBoW2ScoreMin_;

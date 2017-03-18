@@ -266,7 +266,7 @@ FeatureNode::FeatureNode() : only_one_(false)
 {
 }
 
-void FeatureNode::DivideNode(FeatureNode(&p_nodes)[4])
+void FeatureNode::DivideNode(FeatureNode (&p_nodes)[4])
 {
 	const int32_t half_x = (int32_t)ceil((float)(upper_right_.x - upper_left_.x) / 2);
 	const int32_t half_y = (int32_t)ceil((float)(bottom_right_.y - upper_left_.y) / 2);
@@ -355,7 +355,7 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 	}
 	features_per_level_[levels_ - 1] = std::max(features_max_ - features_sum, 0);
 
-	const cv::Point * pattern = (const cv::Point *)kPattern;
+	const cv::Point *pattern = (const cv::Point *)kPattern;
 	std::copy(pattern, pattern + 512, std::back_inserter(pattern_));
 
 	u_max_.resize(kHalfPatchSize_ + 1);
@@ -379,7 +379,7 @@ ORBFeature::ORBFeature(const int32_t p_features_max, const float p_scale_factor,
 	}
 }
 
-void ORBFeature::ComputeOrientation(const cv::Mat & p_image, std::vector<cv::KeyPoint> & p_keypoints)
+void ORBFeature::ComputeOrientation(const cv::Mat &p_image, std::vector<cv::KeyPoint> &p_keypoints)
 {
 	const int32_t step = (int32_t)p_image.step1();
 	const int32_t keypoints_size = (int32_t)p_keypoints.size();
@@ -388,7 +388,7 @@ void ORBFeature::ComputeOrientation(const cv::Mat & p_image, std::vector<cv::Key
 	for (int32_t i = 0; i < keypoints_size; ++i)
 	{
 		int32_t m_01 = 0, m_10 = 0;
-		const uint8_t * center = &p_image.at<uint8_t>((int32_t)round(p_keypoints[i].pt.y), (int32_t)round(p_keypoints[i].pt.x));
+		const uint8_t *center = &p_image.at<uint8_t>((int32_t)round(p_keypoints[i].pt.y), (int32_t)round(p_keypoints[i].pt.x));
 
 		for (int32_t u = -kHalfPatchSize_; u <= kHalfPatchSize_; ++u)
 		{
@@ -413,8 +413,8 @@ void ORBFeature::ComputeOrientation(const cv::Mat & p_image, std::vector<cv::Key
 	}
 }
 
-std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPoint>& p_distributed_keypoints, const int32_t & p_x_min,
-	const int32_t & p_x_max, const int32_t & p_y_min, const int32_t & p_y_max, const int32_t & p_features_number)
+std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPoint> &p_distributed_keypoints, const int32_t &p_x_min,
+	                                                 const int32_t &p_x_max, const int32_t &p_y_min, const int32_t &p_y_max, const int32_t &p_features_number)
 {
 	int32_t nodes_init_number = (int32_t)round((float)(p_x_max - p_x_min) / (p_y_max - p_y_min));
 	float nodes_interval = (float)(p_x_max - p_x_min) / nodes_init_number;
@@ -454,7 +454,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 		}
 	}
 
-	std::vector<std::pair<int32_t, FeatureNode *> > nodes_size_and_pointer;
+	std::vector< std::pair<int32_t, FeatureNode *> > nodes_size_and_pointer;
 	nodes_size_and_pointer.reserve(nodes_list.size() * 4);
 
 	for (bool is_finish = false; !is_finish;)
@@ -505,7 +505,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 			{
 				pre_nodes_list_size = (int32_t)nodes_list.size();
 
-				std::vector<std::pair<int32_t, FeatureNode *> > pre_nodes_size_and_pointer = nodes_size_and_pointer;
+				std::vector< std::pair<int32_t, FeatureNode *> > pre_nodes_size_and_pointer = nodes_size_and_pointer;
 				nodes_size_and_pointer.clear();
 				std::sort(pre_nodes_size_and_pointer.begin(), pre_nodes_size_and_pointer.end());
 
@@ -568,7 +568,7 @@ std::vector<cv::KeyPoint> ORBFeature::DistributeTree(const std::vector<cv::KeyPo
 	return keypoints_result;
 }
 
-void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint> > & p_keypoints)
+void ORBFeature::ComputeKeyPoints(std::vector< std::vector<cv::KeyPoint> > &p_keypoints)
 {
 	p_keypoints.resize(levels_);
 
@@ -665,7 +665,7 @@ void ORBFeature::ComputeKeyPoints(std::vector<std::vector<cv::KeyPoint> > & p_ke
 	}
 }
 
-void ORBFeature::ComputeDescriptors(const cv::Mat & p_image, const std::vector<cv::KeyPoint> & p_keypoints, cv::Mat & p_descriptors)
+void ORBFeature::ComputeDescriptors(const cv::Mat &p_image, const std::vector<cv::KeyPoint> &p_keypoints, cv::Mat &p_descriptors)
 {
 	const int32_t keypoints_size = (int32_t)p_keypoints.size();
 	const int32_t step = (int32_t)p_image.step;
@@ -679,7 +679,7 @@ void ORBFeature::ComputeDescriptors(const cv::Mat & p_image, const std::vector<c
 		float angle_cos = (float)cos(angle);
 		float angle_sin = (float)sin(angle);
 
-		const uint8_t * center = &p_image.at<uint8_t>(cvRound(p_keypoints[count].pt.y), cvRound(p_keypoints[count].pt.x));
+		const uint8_t *center = &p_image.at<uint8_t>(cvRound(p_keypoints[count].pt.y), cvRound(p_keypoints[count].pt.x));
 		for (int32_t i = 0, j = 0; i < 32; ++i, j += 16)
 		{
 			int32_t t0, t1, pattern_index;
@@ -698,7 +698,7 @@ void ORBFeature::ComputeDescriptors(const cv::Mat & p_image, const std::vector<c
 	}
 }
 
-void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & p_keypoints, cv::OutputArray p_descriptors)
+void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> &p_keypoints, cv::OutputArray p_descriptors)
 {
 	if (p_image.empty()) return;
 	cv::Mat image = p_image.getMat();
@@ -706,7 +706,7 @@ void ORBFeature::operator()(cv::InputArray p_image, std::vector<cv::KeyPoint> & 
 
 	ComputePyramid(image);
 
-	std::vector<std::vector<cv::KeyPoint> > keypoints;
+	std::vector< std::vector<cv::KeyPoint> > keypoints;
 	ComputeKeyPoints(keypoints);
 
 	cv::Mat descriptors;

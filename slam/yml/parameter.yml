@@ -1,23 +1,5 @@
 %YAML:1.2
 
-#################### TUM Dataset ####################
-# cafe(782)                                         #
-# freiburg1_desk(573)                               #
-# freiburg1_xyz(792)                                #
-# freiburg1_rpy(694)                                #
-# freiburg1_plant(1126)                             #
-# freiburg1_room(1352)                              #
-# freiburg2_desk(2893)                              #
-# freiburg2_flowerbouquet(2859)                     #
-# freiburg2_large_with_loop(5057)                   #
-# freiburg3_nostructure_texture_near_withloop(1639) #
-# freiburg3_structure_texture_far(907)              #
-# freiburg3_long_office_household(2488)             #
-#####################################################
-
-# image number
-image_number : 1352
-
 # camera parameters kinect
 camera:
   fx : 517.3
@@ -31,58 +13,6 @@ camera:
   d3 : 0.0026
   d4 : 1.1633
 
-# camera parameters cafe
-#camera:
-#  fx : 518.0
-#  fy : 519.0
-#  cx : 325.5
-#  cy : 253.5
-#  scale : 1000.0
-#  d0 : 0.0
-#  d1 : 0.0
-#  d2 : 0.0
-#  d3 : 0.0
-#  d4 : 0.0
-
-# camera parameters fr1
-#camera:
-#  fx : 517.3
-#  fy : 516.5
-#  cx : 318.6
-#  cy : 255.3
-#  scale : 5000.0
-#  d0 : 0.2624
-#  d1 : -0.9531
-#  d2 : -0.0054
-#  d3 : 0.0026
-#  d4 : 1.1633
-
-# camera parameters fr2
-#camera:
-#  fx : 520.9
-#  fy : 521.0
-#  cx : 325.1
-#  cy : 249.7
-#  scale : 5000.0
-#  d0 : 0.2312
-#  d1 : -0.7849
-#  d2 : -0.0033
-#  d3 : -0.0001
-#  d4 : 0.9172
-
-# camera parameters fr3
-#camera:
-#  fx : 535.4
-#  fy : 539.2
-#  cx : 320.1
-#  cy : 247.6
-#  scale : 5000.0
-#  d0 : 0.0
-#  d1 : 0.0
-#  d2 : 0.0
-#  d3 : 0.0
-#  d4 : 0.0
-
 # orb parameters
 orb:
   features_max : 1000
@@ -92,9 +22,6 @@ orb:
   threshold_min : 7
   match_ratio : 0.7
 
-# dataset directory
-dataset_dir : "../../../Dataset/freiburg1_room/"
-
 # filter parameters
 filter:
   interval : 5
@@ -103,9 +30,6 @@ filter:
 # pnp parameters
 pnp:
   inliers_threshold : 80
-
-# vocabulary directory
-vocabulary_dir : "" # "ORBvoc.txt"
 
 # dbow2 loop parameters
 dbow2:

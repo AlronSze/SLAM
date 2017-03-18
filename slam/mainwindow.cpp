@@ -114,6 +114,7 @@ void MainWindow::SlotLoadYML()
 		ui.value_d2_->setText(temp.setNum(parameter_->kCameraParameters_.d2_));
 		ui.value_d3_->setText(temp.setNum(parameter_->kCameraParameters_.d3_));
 		ui.value_d4_->setText(temp.setNum(parameter_->kCameraParameters_.d4_));
+		ui.value_max_dist_->setText(temp.setNum(parameter_->kFilterDepthMax_));
 		
 		ui.button_modify_camera_->setEnabled(true);
 		yml_flag_ = true;
@@ -174,6 +175,7 @@ void MainWindow::SlotModifyCamera()
 	parameter_->kCameraParameters_.d2_ = ui.value_d2_->text().toFloat();
 	parameter_->kCameraParameters_.d3_ = ui.value_d3_->text().toFloat();
 	parameter_->kCameraParameters_.d4_ = ui.value_d4_->text().toFloat();
+	parameter_->kFilterDepthMax_ = ui.value_max_dist_->text().toFloat();
 
 	QMessageBox::information(this, "Information", "Camera parameters modified successfully!");
 }
@@ -262,7 +264,7 @@ void MainWindow::SlotRefreshDevice()
 	openni::OpenNI::enumerateDevices(&rgbd_device_list_);
 	for (int32_t i = 0; i < rgbd_device_list_.getSize(); ++i)
 	{
-		const openni::DeviceInfo & device_info = rgbd_device_list_[i];
+		const openni::DeviceInfo &device_info = rgbd_device_list_[i];
 		ui.box_device_->addItem(device_info.getName() + tr(": ") + device_info.getUri());
 	}
 }

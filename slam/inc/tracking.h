@@ -3,19 +3,21 @@
 #include <QLineEdit>
 
 #include <vector>
+
 #include <opencv2/core/core.hpp>
 
-#include "parameter.h"
 #include "frame.h"
 #include "loop_closing.h"
+#include "parameter.h"
+#include "pnp_solver.h"
 
 class Tracking
 {
 public:
-	Tracking(const Parameter & p_parameter, LoopClosing * p_loop_closing, QLineEdit * p_value_keyframe_count);
+	Tracking(const Parameter &p_parameter, LoopClosing *p_loop_closing, QLineEdit *p_value_keyframe_count);
 	~Tracking();
 
-	bool GetFrame(Frame * p_frame);
+	bool GetFrame(Frame &p_frame);
 
 private:
 	bool Track();
@@ -23,9 +25,8 @@ private:
 	bool TrackWithLastKeyFrame();
 	bool Relocalization();
 	bool NeedInsertKeyFrame(const bool p_flag);
-	void ModifyMapPoints();
-	void UpdateKeyFrames();
-	bool OptimizePose(const Frame & p_query_frame, Frame & p_train_frame, const int32_t p_threshold);
+	void UpdateAndLoop();
+	void UpdateFrameTransform();
 
 private:
 	enum TrackingState
@@ -35,42 +36,17 @@ private:
 		LOST
 	} tracking_state_;
 
-	float match_ratio_;
-	int32_t pnp_inliers_threshold_;
+	cv::Mat current_rotation_;
+	cv::Mat current_translation_;
 
-	cv::Mat camera_K_;
-	cv::Mat camera_D_;
-
-	cv::Mat cur_rotation_;
-	cv::Mat cur_translation_;
-
-	Frame * cur_frame_;
-	Frame last_frame_;
-
+	Frame current_frame_;
 	std::vector<Frame> key_frames_;
-	std::vector<cv::DMatch> cur_matches_;
-	std::vector<int8_t> cur_matches_flag_;
-	int32_t cur_matches_size_;
 	int32_t key_frames_count_;
 
-	QLineEdit * value_keyframe_count_;
+	QLineEdit *value_keyframe_count_;
 
-	LoopClosing * loop_closing_;
+	LoopClosing *loop_closing_;
+	PnPSolver *pnp_solver_;
 
 	Eigen::Isometry3d last_transform_;
 };
-
-inline bool Tracking::NeedInsertKeyFrame(const bool p_flag)
-{
-	double norm = fabs(cv::norm(cur_translation_)) + fabs(std::min(cv::norm(cur_rotation_), 2.0 * M_PI - cv::norm(cur_rotation_)));
-	bool norm_flag = (norm < 1.86) && (norm > 1.76);
-	return (norm_flag || p_flag);
-}
-
-inline void Tracking::UpdateKeyFrames()
-{
-	key_frames_.push_back(*cur_frame_);
-	++key_frames_count_;
-	loop_closing_->GetKeyFrame(*cur_frame_);
-	last_frame_ = *cur_frame_;
-}

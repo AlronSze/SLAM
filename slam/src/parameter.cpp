@@ -11,9 +11,6 @@ bool Parameter::LoadYMLFile(const std::string p_yml_name)
 		return false;
 	}
 
-	// image number
-	file_storage["image_number"] >> kImageNumber_;
-
 	// camera parameters
 	file_storage["camera"]["fx"] >> kCameraParameters_.fx_;
 	file_storage["camera"]["fy"] >> kCameraParameters_.fy_;
@@ -34,18 +31,12 @@ bool Parameter::LoadYMLFile(const std::string p_yml_name)
 	file_storage["orb"]["threshold_min"] >> kORBThresholdMin_;
 	file_storage["orb"]["match_ratio"] >> kORBMatchRatio_;
 
-	// dataset directory
-	file_storage["dataset_dir"] >> kDatasetDir_;
-
 	// point cloud filter parameters
 	file_storage["filter"]["interval"] >> kFilterInterval_;
 	file_storage["filter"]["depth_max"] >> kFilterDepthMax_;
 
 	// pnp parameters
 	file_storage["pnp"]["inliers_threshold"] >> KPNPInliersThreshold_;
-
-	// vocabulary directory
-	file_storage["vocabulary_dir"] >> kVocabularyDir_;
 
 	// dbow2 loop parameters
 	file_storage["dbow2"]["score_min"] >> kDBoW2ScoreMin_;
@@ -75,12 +66,6 @@ void Parameter::Print()
 	std::cout << "Camera Intrinsic d3    : " << kCameraParameters_.d3_ << std::endl;
 	std::cout << "Camera Intrinsic d4    : " << kCameraParameters_.d4_ << std::endl;
 	std::cout << "Camera Intrinsic scale : " << kCameraParameters_.scale_ << std::endl;
-
-	std::cout << "Dataset Directory      : " << kDatasetDir_ << std::endl;
-
-	std::cout << "Number Of Images       : " << kImageNumber_ << std::endl;
-
-	std::cout << "Vocabulary Directory   : " << kVocabularyDir_ << std::endl;
 
 	std::cout << "======================================================" << std::endl << std::endl;
 }

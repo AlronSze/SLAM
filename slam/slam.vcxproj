@@ -95,8 +95,7 @@
     <ClCompile Include="src\frame.cpp" />
     <ClCompile Include="src\loop_closing.cpp" />
     <ClCompile Include="src\map.cpp" />
-    <ClCompile Include="src\map_point.cpp" />
-    <ClCompile Include="src\optimizer.cpp" />
+    <ClCompile Include="src\pnp_solver.cpp" />
     <ClCompile Include="src\orb_feature.cpp" />
     <ClCompile Include="src\orb_matcher.cpp" />
     <ClCompile Include="src\parameter.cpp" />
@@ -141,8 +140,7 @@
     <ClInclude Include="inc\frame.h" />
     <ClInclude Include="inc\loop_closing.h" />
     <ClInclude Include="inc\map.h" />
-    <ClInclude Include="inc\map_point.h" />
-    <ClInclude Include="inc\optimizer.h" />
+    <ClInclude Include="inc\pnp_solver.h" />
     <ClInclude Include="inc\orb_feature.h" />
     <ClInclude Include="inc\orb_matcher.h" />
     <ClInclude Include="inc\parameter.h" />
@@ -165,7 +163,7 @@
     <ResourceCompile Include="slam.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="parameter.yml" />
+    <None Include="yml\parameter.yml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

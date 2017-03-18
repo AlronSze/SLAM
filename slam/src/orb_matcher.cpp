@@ -2,10 +2,10 @@
 
 #include <opencv2/legacy/legacy.hpp>
 
-std::vector<cv::DMatch> ORBMatcher::MatchTwoFrame(const Frame & p_query_frame, const Frame & p_train_frame, const float p_match_ratio)
+std::vector<cv::DMatch> ORBMatcher::MatchTwoFrame(const Frame &p_query_frame, const Frame &p_train_frame, const float p_match_ratio)
 {
 	cv::BruteForceMatcher<cv::HammingLUT> matcher;
-	std::vector<std::vector<cv::DMatch> > matches_knn;
+	std::vector< std::vector<cv::DMatch> > matches_knn;
 	std::vector<cv::DMatch> matches;
 
 	matcher.knnMatch(p_query_frame.descriptors_, p_train_frame.descriptors_, matches_knn, 2);
@@ -21,11 +21,10 @@ std::vector<cv::DMatch> ORBMatcher::MatchTwoFrame(const Frame & p_query_frame, c
 		}
 	}
 
-	// return matches;
 	return DoRansacMatch(p_query_frame, p_train_frame, matches);
 }
 
-std::vector<cv::DMatch> ORBMatcher::DoRansacMatch(const Frame & p_query_frame, const Frame & p_train_frame, const std::vector<cv::DMatch> p_matches)
+std::vector<cv::DMatch> ORBMatcher::DoRansacMatch(const Frame &p_query_frame, const Frame &p_train_frame, const std::vector<cv::DMatch> p_matches)
 {
 	const size_t matches_size = p_matches.size();
 	if (matches_size == 0)
@@ -39,8 +38,8 @@ std::vector<cv::DMatch> ORBMatcher::DoRansacMatch(const Frame & p_query_frame, c
 
 	for (size_t i = 0; i < matches_size; ++i)
 	{
-		query_points[i] = p_query_frame.point_2d_[p_matches[i].queryIdx];
-		train_points[i] = p_train_frame.point_2d_[p_matches[i].trainIdx];
+		query_points[i] = p_query_frame.GetPoint2D(p_matches[i].queryIdx);
+		train_points[i] = p_train_frame.GetPoint2D(p_matches[i].trainIdx);
 	}
 
 	std::vector<uint8_t> inliers_mask(matches_size);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame.h"
+#include <QVTKWidget.h>
 
 #include <mutex>
 
@@ -8,19 +8,17 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h>
 
-#include <QVTKWidget.h>
+#include "frame.h"
 
 class Map
 {
 public:
 	Map();
-	void GetKeyFrames(const std::vector<Frame> & p_frame, const bool p_last_flag = false);
+	void GetKeyFrames(const std::vector<Frame> &p_frame, const bool p_last_flag = false);
 	void Run();
 
 private:
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloud(const Frame & p_frame);
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudOfWorldPoints(const Frame & p_frame);
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloudOfWhole(const Frame & p_frame);
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr GetPointCloud(const Frame &p_frame);
 
 public:
 	bool can_draw_;

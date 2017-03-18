@@ -2,66 +2,69 @@
 
 #include <string>
 #include <vector>
-#include <Eigen/Dense>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <pcl/common/transforms.h>
 #include <pcl/point_types.h>
+#include <Eigen/Dense>
 
-#include "../3rd_part/dbow2/BowVector.h"
+#include "../3rd_part/dbow2/FORB.h"
+#include "../3rd_part/dbow2/TemplatedVocabulary.h"
 
 #include "parameter.h"
-#include "map_point.h"
 
 class Frame
 {
 public:
-	Frame();
+	Frame() {}
 	Frame(const Frame &p_frame);
-	Frame(const int32_t p_index, const Parameter & p_parameter);
-	Frame(const int32_t p_index, const cv::Mat & p_color_image, const cv::Mat & p_depth_image, const Parameter & p_parameter);
+	Frame(const int32_t p_index, const cv::Mat &p_color_image, const cv::Mat &p_depth_image, const Parameter &p_parameter);
 
-	void GetImage(const int32_t p_index);
-	void GetKeyPointAndDescriptor();
-	void ComputePoint3D();
-	void InitializeMapPoints();
 	void SetPointCloud();
 	void ReleaseImage();
+
 	std::vector<cv::Mat> GetDescriptorVector() const;
-	inline cv::Point2f GetPoint2D(const int32_t p_index) const;
-	inline cv::Point3f GetPoint3D(const int32_t p_index) const;
-	inline uint16_t GetDepth(const int32_t p_y, const int32_t p_x) const;
-	inline void SetTransform(const Eigen::Isometry3d & p_transform);
-	inline Eigen::Isometry3d GetTransform() const;
+	cv::Point2f GetPoint2D(const int32_t p_index) const;
+	cv::Point3f GetPoint3D(const int32_t p_index) const;
+	uint16_t GetDepth(const int32_t p_index) const;
+
+	void SetBowVector(DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> &p_bow_vocabulary);
+	void SetTransformCameraToLast(const Eigen::Isometry3d &p_transform);
+	void SetTransformCameraToWorld(const Eigen::Isometry3d &p_transform);
+	void SetTransformWorldToCamera(const Eigen::Isometry3d &p_transform);
 
 private:
+	void GetKeyPointAndDescriptor();
+	void ComputePoint3D();
 	void UndistortKeyPoints();
 
 public:
 	int32_t id_;
 	int32_t key_point_number_;
+
 	cv::Mat bgr_image_;
 	cv::Mat depth_image_;
 
-	float camera_fx_;
-	float camera_fy_;
-	float camera_cx_;
-	float camera_cy_;
-
-	DBoW2::BowVector bow_vector;
-	cv::Mat descriptors_;
 	std::vector<cv::KeyPoint> key_points_;
-	std::vector<cv::KeyPoint> key_points_fixed_;
+	cv::Mat descriptors_;
 
-	std::vector<MapPoint *> map_points_;
+	DBoW2::BowVector bow_vector_;
+	DBoW2::FeatureVector feature_vector_;
+
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr point_cloud_;
+
+	Eigen::Isometry3d transform_camera_to_last_;
+	Eigen::Isometry3d transform_camera_to_world_;
+	Eigen::Isometry3d transform_world_to_camera_;
+
+private:
+	std::vector<cv::KeyPoint> key_points_fixed_;
 
 	std::vector<cv::Point2f> point_2d_;
 	std::vector<cv::Point3f> point_3d_;
 	std::vector<uint16_t> point_depth_;
 
-	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr point_cloud_;
-
-private:
 	int32_t orb_features_max_;
 	float orb_scale_;
 	int32_t orb_levels_;
@@ -70,18 +73,20 @@ private:
 	int32_t filter_interval_;
 	std::string dataset_dir_;
 
+	float camera_fx_;
+	float camera_fy_;
+	float camera_cx_;
+	float camera_cy_;
 	float camera_scale_;
 	float depth_max_;
 
-	cv::Mat camera_K_;
-	cv::Mat camera_D_;
-
-	Eigen::Isometry3d transform_;
+	cv::Mat camera_k_;
+	cv::Mat camera_d_;
 };
 
 inline cv::Point2f Frame::GetPoint2D(const int32_t p_index) const
 {
-	return key_points_[p_index].pt;
+	return point_2d_[p_index];
 }
 
 inline cv::Point3f Frame::GetPoint3D(const int32_t p_index) const
@@ -89,17 +94,29 @@ inline cv::Point3f Frame::GetPoint3D(const int32_t p_index) const
 	return point_3d_[p_index];
 }
 
-inline uint16_t Frame::GetDepth(const int32_t p_y, const int32_t p_x) const
+inline uint16_t Frame::GetDepth(const int32_t p_index) const
 {
-	return depth_image_.ptr<uint16_t>(p_y)[p_x];
+	return point_depth_[p_index];
 }
 
-inline void Frame::SetTransform(const Eigen::Isometry3d & p_transform)
+inline void Frame::SetTransformCameraToLast(const Eigen::Isometry3d &p_transform)
 {
-	transform_ = p_transform;
+	transform_camera_to_last_ = p_transform;
 }
 
-inline Eigen::Isometry3d Frame::GetTransform() const
+inline void Frame::SetTransformCameraToWorld(const Eigen::Isometry3d &p_transform)
 {
-	return transform_;
+	transform_camera_to_world_ = p_transform;
+	transform_world_to_camera_ = transform_camera_to_world_.inverse();
+}
+
+inline void Frame::SetTransformWorldToCamera(const Eigen::Isometry3d &p_transform)
+{
+	transform_world_to_camera_ = p_transform;
+	transform_camera_to_world_ = transform_world_to_camera_.inverse();
+}
+
+inline void Frame::SetBowVector(DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> &p_bow_vocabulary)
+{
+	p_bow_vocabulary.transform(GetDescriptorVector(), bow_vector_, feature_vector_, 4);
 }
