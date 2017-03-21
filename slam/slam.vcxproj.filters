@@ -127,6 +127,15 @@
     <ClCompile Include="src\pnp_solver.cpp">
       <Filter>Source Files\src</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_photowindow.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_photowindow.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="photowindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="mainwindow.ui">
@@ -136,6 +145,12 @@
       <Filter>Resource Files</Filter>
     </CustomBuild>
     <CustomBuild Include="mainwindow.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="photowindow.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="photowindow.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -196,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="inc\pnp_solver.h">
       <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_photowindow.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

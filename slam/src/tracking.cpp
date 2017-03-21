@@ -7,6 +7,10 @@
 #include "../inc/orb_matcher.h"
 #include "../inc/pnp_solver.h"
 
+#ifndef SAFE_DELETE 
+#define SAFE_DELETE(p) if(p) { delete (p); (p) = NULL; }
+#endif
+
 Tracking::Tracking(const Parameter &p_parameter, LoopClosing *p_loop_closing, QLineEdit *p_value_keyframe_count) :
 	tracking_state_(INITIALIZE), loop_closing_(p_loop_closing), last_transform_(Eigen::Isometry3d::Identity()),
 	key_frames_count_(0), value_keyframe_count_(p_value_keyframe_count)
@@ -22,7 +26,7 @@ Tracking::Tracking(const Parameter &p_parameter, LoopClosing *p_loop_closing, QL
 
 Tracking::~Tracking()
 {
-	delete pnp_solver_;
+	SAFE_DELETE(pnp_solver_);
 }
 
 bool Tracking::GetFrame(Frame &p_frame)
@@ -52,6 +56,12 @@ bool Tracking::Track()
 	else if (tracking_state_ == OK)
 	{
 		is_tracked = TrackWithLastKeyFrame();
+
+		if (!is_tracked)
+		{
+			is_tracked = Relocalization();
+			is_relocalized = is_tracked;
+		}
 	}
 	else
 	{

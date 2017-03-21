@@ -92,14 +92,16 @@ public:
     QPushButton *button_open_device_;
     QPushButton *button_close_device_;
     QLabel *text_device_;
-    QMenuBar *menuBar;
+    QPushButton *button_photo_mode_;
     QStatusBar *statusBar;
+    QMenuBar *menuBar;
 
     void setupUi(QMainWindow *MainWindowClass)
     {
         if (MainWindowClass->objectName().isEmpty())
             MainWindowClass->setObjectName(QStringLiteral("MainWindowClass"));
-        MainWindowClass->resize(1443, 904);
+        MainWindowClass->setEnabled(true);
+        MainWindowClass->resize(1440, 905);
         centralWidget = new QWidget(MainWindowClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         button_select_yml_ = new QPushButton(centralWidget);
@@ -405,8 +407,13 @@ public:
         button_close_device_->setFont(font2);
         text_device_ = new QLabel(groupBox_7);
         text_device_->setObjectName(QStringLiteral("text_device_"));
-        text_device_->setGeometry(QRect(20, 80, 600, 16));
+        text_device_->setGeometry(QRect(20, 80, 401, 16));
         text_device_->setFont(font2);
+        button_photo_mode_ = new QPushButton(groupBox_7);
+        button_photo_mode_->setObjectName(QStringLiteral("button_photo_mode_"));
+        button_photo_mode_->setEnabled(false);
+        button_photo_mode_->setGeometry(QRect(420, 75, 200, 23));
+        button_photo_mode_->setFont(font2);
         MainWindowClass->setCentralWidget(centralWidget);
         groupBox_5->raise();
         groupBox_4->raise();
@@ -422,13 +429,13 @@ public:
         label_depth_->raise();
         groupBox_7->raise();
         button_select_yml_->raise();
-        menuBar = new QMenuBar(MainWindowClass);
-        menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1443, 23));
-        MainWindowClass->setMenuBar(menuBar);
         statusBar = new QStatusBar(MainWindowClass);
         statusBar->setObjectName(QStringLiteral("statusBar"));
         MainWindowClass->setStatusBar(statusBar);
+        menuBar = new QMenuBar(MainWindowClass);
+        menuBar->setObjectName(QStringLiteral("menuBar"));
+        menuBar->setGeometry(QRect(0, 0, 1440, 23));
+        MainWindowClass->setMenuBar(menuBar);
 
         retranslateUi(MainWindowClass);
 
@@ -486,6 +493,7 @@ public:
         button_open_device_->setText(QApplication::translate("MainWindowClass", "Open", Q_NULLPTR));
         button_close_device_->setText(QApplication::translate("MainWindowClass", "Close", Q_NULLPTR));
         text_device_->setText(QApplication::translate("MainWindowClass", "Please open a RGB-D device.", Q_NULLPTR));
+        button_photo_mode_->setText(QApplication::translate("MainWindowClass", "Enter Photo Mode", Q_NULLPTR));
     } // retranslateUi
 
 };

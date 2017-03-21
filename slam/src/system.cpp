@@ -21,17 +21,24 @@
 #include "../inc/loop_closing.h"
 #include "../inc/tracking.h"
 
+#ifndef SAFE_DELETE 
+#define SAFE_DELETE(p) if(p) { delete (p); (p) = NULL; }
+#endif
+
+System::System(openni::VideoStream *p_color_stream) :
+	map_(NULL), map_thread_(NULL), is_running_(true), color_stream_(p_color_stream), screenshot_flag_(false)
+{
+}
+
 System::System(openni::VideoStream *p_color_stream, openni::VideoStream *p_depth_stream) :
-	map_(NULL), is_running_(false), color_stream_(p_color_stream), depth_stream_(p_depth_stream)
+	map_(NULL), map_thread_(NULL), is_running_(false), color_stream_(p_color_stream), depth_stream_(p_depth_stream)
 {
 }
 
 System::~System()
 {
-	if (map_)
-	{
-		delete map_;
-	}
+	SAFE_DELETE(map_thread_);
+	SAFE_DELETE(map_);
 }
 
 void System::Run()
@@ -39,9 +46,9 @@ void System::Run()
 	bool track_result;
 	int32_t lost_count = 0;
 
-	DrawImage draw_image(label_color_, label_depth_, parameter_->kCameraParameters_.scale_, true);
+	DrawImage draw_image(label_color_, label_depth_, parameter_->kCameraParameters_.scale_);
 	map_ = new Map();
-	std::thread *map_thread = new std::thread(&Map::Run, map_);
+	map_thread_ = new std::thread(&Map::Run, map_);
 	LoopClosing loop_closing(*parameter_, bow_vocabulary_, map_, value_loop_count_);
 	Tracking tracking(*parameter_, &loop_closing, value_keyframe_count_);
 
@@ -66,14 +73,13 @@ void System::Run()
 		MirrorImage(rgb_image, rgb_image_mirror);
 		MirrorImage(depth_image, depth_image_mirror);
 
-		draw_image.DrawImages(rgb_image_mirror, depth_image_mirror);
-
 		cv::Mat bgr_image_mirror;
 		cv::cvtColor(rgb_image_mirror, bgr_image_mirror, CV_RGB2BGR);
 
 		std::cout << "Load image, ID: " << current_id << std::endl;
 		Frame frame(current_id, bgr_image_mirror, depth_image_mirror, *parameter_);
 
+		draw_image.DrawImages(rgb_image_mirror, depth_image_mirror, frame.key_points_);
 		track_result = tracking.GetFrame(frame);
 
 		if (track_result)
@@ -101,8 +107,52 @@ void System::Run()
 
 	loop_closing.OptimizeLast();
 
-	map_thread->join();
-	delete map_thread;
+	map_thread_->join();
+}
+
+void System::RunPhotoMode()
+{
+	DrawImage draw_image(label_color_);
+	openni::VideoFrameRef color_frame;
+	color_stream_->start();
+
+	int32_t photo_id = 1;
+
+	while (is_running_)
+	{
+		color_stream_->readFrame(&color_frame);
+
+		cv::Mat rgb_image(color_frame.getHeight(), color_frame.getWidth(), CV_8UC3, (void *)color_frame.getData());
+
+		cv::Mat rgb_image_mirror;
+		MirrorImage(rgb_image, rgb_image_mirror);
+
+		draw_image.DrawImages(rgb_image_mirror);
+
+		if (screenshot_flag_)
+		{
+			std::stringstream string_stream;
+			string_stream << screenshot_path_ << "/screenshot-" << photo_id++ << ".bmp";
+
+			cv::Mat bgr_image_mirror;
+			cv::cvtColor(rgb_image_mirror, bgr_image_mirror, CV_RGB2BGR);
+
+			if (cv::imwrite(string_stream.str(), bgr_image_mirror))
+			{
+				text_screenshot_->setText("The screenshot has been saved!");
+			}
+			else
+			{
+				text_screenshot_->setText("Save the screenshot failed, please try again!");
+			}
+
+			screenshot_flag_ = false;
+		}
+
+		thread_sleep(1);
+	}
+
+	color_stream_->stop();
 }
 
 void System::MirrorImage(const cv::Mat &p_source, cv::Mat &p_destination)

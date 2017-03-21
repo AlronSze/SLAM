@@ -4,6 +4,8 @@
 #include <QLineEdit>
 #include <QVTKWidget.h>
 
+#include <string>
+
 #include <opencv2/core/core.hpp>
 #include <pcl/visualization/cloud_viewer.h>
 #include <OpenNI.h>
@@ -17,14 +19,17 @@
 class System
 {
 public:
+	System(openni::VideoStream *p_color_stream);
 	System(openni::VideoStream *p_color_stream, openni::VideoStream *p_depth_stream);
 	~System();
 
+	void SetQTDrawWidget(QLabel *p_label_color, QLabel *p_text_screenshot);
 	void SetQTDrawWidget(QLabel *p_label_color, QLabel *p_label_depth, QVTKWidget *p_vtk_widget, pcl::visualization::PCLVisualizer::Ptr p_pcl_viewer);
 	void SetQTStatusWidget(QLineEdit *p_value_track_status, QLineEdit *p_value_frame_count, QLineEdit *p_value_keyframe_count, QLineEdit *p_value_loop_count);
 	void SetParameter(Parameter *p_parameter);
 	void SetBoWVocabulary(DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *p_bow_vocabulary);
 	void Run();
+	void RunPhotoMode();
 
 private:
 	void MirrorImage(const cv::Mat &p_source, cv::Mat &p_destination);
@@ -43,7 +48,12 @@ public:
 
 	bool is_running_;
 
+	bool screenshot_flag_;
+	std::string screenshot_path_;
+	QLabel *text_screenshot_;
+
 	Map *map_;
+	std::thread *map_thread_;
 	Parameter *parameter_;
 
 	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *bow_vocabulary_;
@@ -52,6 +62,12 @@ private:
 	openni::VideoStream *color_stream_;
 	openni::VideoStream *depth_stream_;
 };
+
+inline void System::SetQTDrawWidget(QLabel *p_label_color, QLabel *p_text_screenshot)
+{
+	label_color_ = p_label_color;
+	text_screenshot_ = p_text_screenshot;
+}
 
 inline void System::SetQTDrawWidget(QLabel *p_label_color, QLabel *p_label_depth, QVTKWidget *p_vtk_widget, pcl::visualization::PCLVisualizer::Ptr p_pcl_viewer)
 {

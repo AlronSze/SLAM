@@ -78,6 +78,8 @@ void Frame::ComputePoint3D()
 	point_3d_.reserve(key_point_number_);
 	point_depth_.reserve(key_point_number_);
 
+	const uint16_t depth_max = (uint16_t)((depth_max_ / 4.096f) * camera_scale_);
+
 	for (int32_t i = 0; i < key_point_number_; ++i)
 	{
 		const int32_t point_x = (int32_t)key_points_[i].pt.x;
@@ -86,7 +88,7 @@ void Frame::ComputePoint3D()
 		const float point_y_fixed = key_points_fixed_[i].pt.y;
 		const uint16_t depth = depth_image_.ptr<uint16_t>(point_y)[point_x];
 
-		if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+		if ((depth == 0) || (depth >= depth_max))
 		{
 			point_2d_.push_back(cv::Point2f(0, 0));
 			point_3d_.push_back(cv::Point3f(0, 0, 0));
@@ -130,12 +132,14 @@ void Frame::SetPointCloud()
 	const int32_t rows = depth_image_.rows;
 	const int32_t cols = depth_image_.cols;
 
+	const uint16_t depth_max = (uint16_t)((depth_max_ / 4.096f) * camera_scale_);
+
 	for (int32_t y = 0; y < rows; y += filter_interval_)
 	{
 		for (int32_t x = 0; x < cols; x += filter_interval_)
 		{
 			uint16_t depth = depth_image_.ptr<uint16_t>(y)[x];
-			if ((depth == 0) || (depth > (uint16_t)(depth_max_ * camera_scale_)))
+			if ((depth == 0) || (depth >= depth_max))
 			{
 				continue;
 			}

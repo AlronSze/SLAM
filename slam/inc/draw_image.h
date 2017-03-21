@@ -11,8 +11,11 @@
 class DrawImage
 {
 public:
-	DrawImage(QLabel *p_label_color, QLabel *p_label_depth, const double p_max_depth, const bool p_show_key_point = false);
+	DrawImage(QLabel *p_label_color);
+	DrawImage(QLabel *p_label_color, QLabel *p_label_depth, const double p_max_depth);
+	void DrawImages(const cv::Mat &p_image_color);
 	void DrawImages(const cv::Mat &p_image_color, const cv::Mat &p_image_depth);
+	void DrawImages(const cv::Mat &p_image_color, const cv::Mat &p_image_depth, const std::vector<cv::KeyPoint> &p_key_points);
 
 private:
 	QLabel *label_color_;

@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>MainWindowClass</class>
  <widget class="QMainWindow" name="MainWindowClass">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1443</width>
-    <height>904</height>
+    <width>1440</width>
+    <height>905</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1198,7 +1201,7 @@
       <rect>
        <x>20</x>
        <y>80</y>
-       <width>600</width>
+       <width>401</width>
        <height>16</height>
       </rect>
      </property>
@@ -1209,6 +1212,27 @@
      </property>
      <property name="text">
       <string>Please open a RGB-D device.</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_photo_mode_">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>75</y>
+       <width>200</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Enter Photo Mode</string>
      </property>
     </widget>
    </widget>
@@ -1227,17 +1251,17 @@
    <zorder>groupBox_7</zorder>
    <zorder>button_select_yml_</zorder>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1443</width>
+     <width>1440</width>
      <height>23</height>
     </rect>
    </property>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

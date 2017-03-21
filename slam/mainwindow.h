@@ -24,6 +24,7 @@ VTK_MODULE_INIT(vtkInteractionStyle);
 #include "3rd_part/dbow2/TemplatedVocabulary.h"
 #include "inc/parameter.h"
 #include "inc/system.h"
+#include "photowindow.h"
 
 class MainWindow : public QMainWindow
 {
@@ -50,23 +51,30 @@ public slots:
 	void SlotRefreshDevice();
 	void SlotOpenDevice();
 	void SlotCloseDevice();
+	void SlotEnterPhotoMode();
+	void SlotDestroypPhotoWindow();
 
 public:
-	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> * bow_vocabulary_;
+	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *bow_vocabulary_;
 	pcl::visualization::PCLVisualizer::Ptr pcl_viewer_;
-	openni::VideoStream * color_stream_;
-	openni::VideoStream * depth_stream_;
+	openni::VideoStream *color_stream_;
+	openni::VideoStream *depth_stream_;
 
 private:
-	Ui::MainWindowClass ui;
-	Parameter * parameter_;
-	System * system_;
-	std::thread * system_thread_;
+	Ui::MainWindowClass ui_;
+
+	PhotoWindow *photo_window_;
+
+	Parameter *parameter_;
+	System *system_;
+	std::thread *system_thread_;
 	QTimer vtk_timer_;
+
 	openni::Device rgbd_device_;
 	openni::Array<openni::DeviceInfo> rgbd_device_list_;
 
 	bool dev_flag_;
 	bool yml_flag_;
 	bool voc_flag_;
+	bool is_photo_mode_;
 };

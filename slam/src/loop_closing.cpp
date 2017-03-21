@@ -8,6 +8,10 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/legacy/legacy.hpp>
 
+#ifndef SAFE_DELETE 
+#define SAFE_DELETE(p) if(p) { delete (p); (p) = NULL; }
+#endif
+
 LoopClosing::LoopClosing(const Parameter &p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *p_bow_vocabulary,
 	                     Map *p_map, QLineEdit *p_value_loop_count) :
 	local_error_sum_(0.0), global_error_sum_(0.0), not_optimize_count_(0), bow_vocabulary_(p_bow_vocabulary), map_(p_map),
@@ -30,7 +34,7 @@ LoopClosing::LoopClosing(const Parameter &p_parameter, DBoW2::TemplatedVocabular
 
 LoopClosing::~LoopClosing()
 {
-	delete pnp_solver_;
+	SAFE_DELETE(pnp_solver_);
 }
 
 void LoopClosing::InitializeG2O()

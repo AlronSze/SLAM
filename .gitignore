@@ -1,9 +1,10 @@
 .vs/*
 x64/*
-*.*db
-
-slam/*.pcd
-slam/*.g2o
-slam/vocabulary/*.txt
-slam/*.bat
 slam/x64/*
+
+*.*db
+*.pcd
+*.g2o
+*.bat
+*.txt
+*.bmp

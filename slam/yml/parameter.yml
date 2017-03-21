@@ -2,16 +2,16 @@
 
 # camera parameters kinect
 camera:
-  fx : 517.3
-  fy : 516.5
-  cx : 318.6
-  cy : 255.3
+  fx : 522.21693
+  fy : 525.59424
+  cx : 307.57430
+  cy : 261.20247
   scale : 10000.0
-  d0 : 0.2624
-  d1 : -0.9531
-  d2 : -0.0054
-  d3 : 0.0026
-  d4 : 1.1633
+  d0 : 0.13508
+  d1 : -0.25678
+  d2 : 0.00119
+  d3 : 0.00022
+  d4 : 0.00000
 
 # orb parameters
 orb:
@@ -25,7 +25,7 @@ orb:
 # filter parameters
 filter:
   interval : 5
-  depth_max : 4.0
+  depth_max : 2.0
 
 # pnp parameters
 pnp:
