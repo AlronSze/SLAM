@@ -17,7 +17,7 @@ camera:
   fy : 519.82670
   cx : 308.66970
   cy : 261.40975
-  scale : 1000.0
+  scale : 10000.0
   d0 : 0.14213
   d1 : -0.26116
   d2 : 0.00028
@@ -26,7 +26,7 @@ camera:
 
 # orb parameters
 orb:
-  features_max : 10000
+  features_max : 1000
   scale : 1.20
   levels : 8
   threshold_init : 20
