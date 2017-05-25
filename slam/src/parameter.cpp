@@ -29,25 +29,37 @@ bool Parameter::LoadYMLFile(const std::string p_yml_name)
 	file_storage["orb"]["levels"] >> kORBLevels_;
 	file_storage["orb"]["threshold_init"] >> kORBThresholdInit_;
 	file_storage["orb"]["threshold_min"] >> kORBThresholdMin_;
-	file_storage["orb"]["match_ratio"] >> kORBMatchRatio_;
+
+	// match parameters
+	file_storage["match"]["track_ratio"] >> kMatchTrackRatio_;
+	file_storage["match"]["relocalize_ratio"] >> kMatchRelocalizeRatio_;
+	file_storage["match"]["local_loop_ratio"] >> kMatchLocalLoopRatio_;
+	file_storage["match"]["global_loop_ratio"] >> kMatchGlobalLoopRatio_;
+
+	// keyframe parameters
+	file_storage["keyframe"]["norm_min"] >> kKeyframeNormMin_;
+	file_storage["keyframe"]["norm_max"] >> kKeyframeNormMax_;
 
 	// point cloud filter parameters
 	file_storage["filter"]["interval"] >> kFilterInterval_;
 	file_storage["filter"]["depth_max"] >> kFilterDepthMax_;
 
 	// pnp parameters
-	file_storage["pnp"]["inliers_threshold"] >> KPNPInliersThreshold_;
+	file_storage["pnp"]["track_threshold"] >> KPNPTrackThreshold_;
+	file_storage["pnp"]["relocalize_threshold"] >> KPNPRelocalizeThreshold_;
+	file_storage["pnp"]["local_loop_threshold"] >> KPNPLocalLoopThreshold_;
+	file_storage["pnp"]["global_loop_threshold"] >> KPNPGlobalLoopThreshold_;
 
-	// dbow2 loop parameters
-	file_storage["dbow2"]["score_min"] >> kDBoW2ScoreMin_;
-	file_storage["dbow2"]["interval_min"] >> kDBoW2IntervalMin_;
+	// dbow2 parameters
+	file_storage["dbow2"]["track_score"] >> kDBoW2TrackScore_;
+	file_storage["dbow2"]["loop_score"] >> kDBoW2LoopScore_;
 
 	// g2o parameters
 	file_storage["g2o"]["chi2_threshold"] >> kG2OChi2Threshold_;
 
 	file_storage.release();
 
-	Print();
+	// Print();
 
 	return true;
 }

@@ -118,5 +118,8 @@ inline void Frame::SetTransformWorldToCamera(const Eigen::Isometry3d &p_transfor
 
 inline void Frame::SetBowVector(DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> &p_bow_vocabulary)
 {
-	p_bow_vocabulary.transform(GetDescriptorVector(), bow_vector_, feature_vector_, 4);
+	if (bow_vector_.empty())
+	{
+		p_bow_vocabulary.transform(GetDescriptorVector(), bow_vector_, feature_vector_, 4);
+	}
 }

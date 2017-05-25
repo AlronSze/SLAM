@@ -12,7 +12,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), parameter_(NULL),
 	bow_vocabulary_(NULL), system_(NULL), color_stream_(NULL), depth_stream_(NULL),
 	system_thread_(NULL), photo_window_(NULL), yml_flag_(false), voc_flag_(false),
-	dev_flag_(false), is_photo_mode_ (false)
+	dev_flag_(false), is_photo_mode_ (false), debug_time_(0)
 {
 	ui_.setupUi(this);
 
@@ -117,14 +117,14 @@ void MainWindow::SlotLoadYML()
 		
 		ui_.button_modify_camera_->setEnabled(true);
 		yml_flag_ = true;
-		//QMessageBox::information(this, "Information", "Parameters applied successfully!");
+		// QMessageBox::information(this, "Information", "Parameters applied successfully!");
 		ui_.text_yml_->setText("Parameters applied successfully!");
 	}
 	else
 	{
 		ui_.button_modify_camera_->setEnabled(false);
 		yml_flag_ = false;
-		//QMessageBox::warning(this, "Warning", "Parameters loaded failed, please try again.");
+		// QMessageBox::warning(this, "Warning", "Parameters loaded failed, please try again.");
 		ui_.text_yml_->setText("Parameters loaded failed, please try again.");
 	}
 }
@@ -148,13 +148,13 @@ void MainWindow::SlotLoadVocabulary()
 	if (bow_vocabulary_->loadFromTextFile(ui_.path_vocabulary_->text().toStdString()))
 	{
 		voc_flag_ = true;
-		//QMessageBox::information(this, "Information", "BoW vocabulary loaded successfully!");
+		// QMessageBox::information(this, "Information", "BoW vocabulary loaded successfully!");
 		ui_.text_vocabulary_->setText("BoW vocabulary loaded successfully!");
 	}
 	else
 	{
 		voc_flag_ = false;
-		//QMessageBox::warning(this, "Warning", "BoW vocabulary loaded failed, please try again.");
+		// QMessageBox::warning(this, "Warning", "BoW vocabulary loaded failed, please try again.");
 		ui_.text_vocabulary_->setText("BoW vocabulary loaded failed, please try again.");
 	}
 }
@@ -190,7 +190,7 @@ void MainWindow::SlotStartSLAM()
 	}
 	if (!voc_flag_)
 	{
-		//bow_vocabulary_ = new DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>();
+		// bow_vocabulary_ = new DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>();
 		QMessageBox::warning(this, "Warning", "Please load vocabulary before starting SLAM!");
 		return;
 	}
@@ -227,6 +227,9 @@ void MainWindow::SlotStopSLAM()
 	vtk_timer_.stop();
 	SlotUpdateVTK();
 
+	// std::cout << "Map Update Time: " << static_cast<double>(debug_time_) / CLOCKS_PER_SEC * 1000 << std::endl;
+	debug_time_ = 0;
+
 	SAFE_DELETE(system_);
 
 	ui_.value_track_status_->setText("Stop");
@@ -246,9 +249,16 @@ void MainWindow::SlotUpdateVTK()
 	{
 		if (system_->map_->vtk_flag_)
 		{
+			clock_t s, e;
+			s = clock();
+
 			pcl_viewer_->removePointCloud();
 			pcl_viewer_->addPointCloud<pcl::PointXYZRGBA>(system_->map_->global_cloud_);
 			ui_.qvtk_widget_->update();
+
+			e = clock();
+			debug_time_ += e - s;
+
 			system_->map_->vtk_flag_ = false;
 		}
 	}

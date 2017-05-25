@@ -16,7 +16,7 @@
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <vtkRenderWindow.h>
 
-Map::Map() : can_draw_(true), last_flag_(false), vtk_flag_(false)
+Map::Map() : can_draw_(true), last_flag_(false), vtk_flag_(false), debug_time_(0)
 {
 }
 
@@ -42,12 +42,15 @@ void Map::GetKeyFrames(const std::vector<Frame> &p_frame, const bool p_last_flag
 void Map::Run()
 {
 	global_cloud_.reset(new pcl::PointCloud<pcl::PointXYZRGBA>);
+	clock_t s, e;
 
 	while (1)
 	{
 		if (can_draw_ && ((!vtk_flag_) || last_flag_))
 		{
 			mutex_.lock();
+
+			s = clock();
 
 			global_cloud_->clear();
 			const int32_t key_frames_size = (int32_t)key_frames_.size();
@@ -67,12 +70,15 @@ void Map::Run()
 			vtk_flag_ = true;
 			can_draw_ = false;
 
+			e = clock();
+			debug_time_ += e - s;
+
 			mutex_.unlock();
 		}
 
 		if (last_flag_)
 		{
-			//pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
+			// pcl::io::savePCDFile("./pointcloud.pcd", *global_cloud_);
 			break;
 		}
 

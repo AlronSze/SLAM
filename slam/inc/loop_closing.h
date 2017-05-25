@@ -32,6 +32,9 @@ private:
 	void LoopClose();
 	std::vector<int32_t> GetLoopFrames();
 
+public:
+	clock_t debug_time_;
+
 private:
 	Frame current_frame_;
 	std::vector<Frame> key_frames_;
@@ -42,12 +45,16 @@ private:
 
 	DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *bow_vocabulary_;
 	double bow_score_min_;
-	int32_t bow_interval_min_;
 
 	double local_error_sum_;
 	double global_error_sum_;
 	int32_t not_optimize_count_;
 	double chi2_threshold_;
+
+	float match_local_loop_ratio_;
+	float match_global_loop_ratio_;
+	int32_t pnp_local_loop_threshold_;
+	int32_t pnp_global_loop_threshold_;
 
 	QLineEdit *value_loop_count_;
 

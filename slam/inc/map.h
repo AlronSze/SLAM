@@ -25,6 +25,7 @@ public:
 	bool vtk_flag_;
 	bool last_flag_;
 	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr global_cloud_;
+	clock_t debug_time_;
 
 private:
 	std::vector<Frame> key_frames_;

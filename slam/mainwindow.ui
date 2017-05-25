@@ -10,160 +10,13 @@
     <x>0</x>
     <y>0</y>
     <width>1440</width>
-    <height>905</height>
+    <height>904</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SLAM System</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="button_select_yml_">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>190</y>
-      <width>30</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>...</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="path_yml_">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>110</x>
-      <y>190</y>
-      <width>400</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>./yml/parameter.yml</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_load_yml_">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>190</y>
-      <width>90</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Load</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="path_vocabulary_">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>110</x>
-      <y>490</y>
-      <width>400</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>./vocabulary/ORBvoc.txt</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_select_vocabulary_">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>490</y>
-      <width>30</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>...</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_load_vocabulary_">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>490</y>
-      <width>90</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Load</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_color_">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>610</y>
-      <width>280</width>
-      <height>210</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>25</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_depth_">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>610</y>
-      <width>280</width>
-      <height>210</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>25</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
@@ -214,7 +67,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Please open and Load a YML file.</string>
+      <string>Please open and load a YML file.</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_6">
@@ -280,7 +133,7 @@
       <property name="geometry">
        <rect>
         <x>160</x>
-        <y>75</y>
+        <y>40</y>
         <width>50</width>
         <height>20</height>
        </rect>
@@ -301,7 +154,7 @@
       <property name="geometry">
        <rect>
         <x>160</x>
-        <y>40</y>
+        <y>75</y>
         <width>50</width>
         <height>20</height>
        </rect>
@@ -472,7 +325,7 @@
       <property name="geometry">
        <rect>
         <x>220</x>
-        <y>75</y>
+        <y>40</y>
         <width>70</width>
         <height>20</height>
        </rect>
@@ -493,7 +346,7 @@
       <property name="geometry">
        <rect>
         <x>220</x>
-        <y>40</y>
+        <y>75</y>
         <width>70</width>
         <height>20</height>
        </rect>
@@ -718,6 +571,69 @@
       </property>
      </widget>
     </widget>
+    <widget class="QPushButton" name="button_load_yml_">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>40</y>
+       <width>90</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Load</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_select_yml_">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>40</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="path_yml_">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>40</y>
+       <width>400</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>./yml/parameter.yml</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
@@ -770,6 +686,66 @@
      </property>
      <property name="text">
       <string>Please open and load a BoW vocabulary file.</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_load_vocabulary_">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>530</x>
+       <y>40</y>
+       <width>90</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Load</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_select_vocabulary_">
+     <property name="geometry">
+      <rect>
+       <x>490</x>
+       <y>40</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="path_vocabulary_">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>40</y>
+       <width>400</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>9</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>./vocabulary/ORBvoc.txt</string>
      </property>
     </widget>
    </widget>
@@ -855,6 +831,60 @@
      </property>
      <property name="text">
       <string>Depth Image</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_color_">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>280</width>
+       <height>210</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>25</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_depth_">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>30</y>
+       <width>280</width>
+       <height>210</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>25</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="text">
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -1241,15 +1271,7 @@
    <zorder>groupBox_3</zorder>
    <zorder>groupBox_2</zorder>
    <zorder>groupBox</zorder>
-   <zorder>path_yml_</zorder>
-   <zorder>button_load_yml_</zorder>
-   <zorder>path_vocabulary_</zorder>
-   <zorder>button_select_vocabulary_</zorder>
-   <zorder>button_load_vocabulary_</zorder>
-   <zorder>label_color_</zorder>
-   <zorder>label_depth_</zorder>
    <zorder>groupBox_7</zorder>
-   <zorder>button_select_yml_</zorder>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">

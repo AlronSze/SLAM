@@ -1,41 +1,66 @@
 %YAML:1.2
 
 # camera parameters kinect
+#camera:
+#  fx : 522.21693
+#  fy : 525.59424
+#  cx : 307.57430
+#  cy : 261.20247
+#  scale : 10000.0
+#  d0 : 0.13508
+#  d1 : -0.25678
+#  d2 : 0.00119
+#  d3 : 0.00022
+#  d4 : 0.00000
 camera:
-  fx : 522.21693
-  fy : 525.59424
-  cx : 307.57430
-  cy : 261.20247
-  scale : 10000.0
-  d0 : 0.13508
-  d1 : -0.25678
-  d2 : 0.00119
-  d3 : 0.00022
+  fx : 516.60146
+  fy : 519.82670
+  cx : 308.66970
+  cy : 261.40975
+  scale : 1000.0
+  d0 : 0.14213
+  d1 : -0.26116
+  d2 : 0.00028
+  d3 : 0.00113
   d4 : 0.00000
 
 # orb parameters
 orb:
-  features_max : 1000
+  features_max : 10000
   scale : 1.20
   levels : 8
   threshold_init : 20
   threshold_min : 7
-  match_ratio : 0.7
+
+# match parameters
+match:
+  track_ratio : 0.7
+  relocalize_ratio : 0.75
+  local_loop_ratio : 0.7
+  global_loop_ratio : 0.7
+
+# keyframe parameters
+keyframe:
+  norm_min : 1.785
+  norm_max : 1.895
 
 # filter parameters
 filter:
   interval : 5
-  depth_max : 2.0
+  depth_max : 4.0
 
 # pnp parameters
 pnp:
-  inliers_threshold : 80
+  track_threshold : 80
+  relocalize_threshold : 40
+  local_loop_threshold : 80
+  global_loop_threshold : 40
 
-# dbow2 loop parameters
+# dbow2 parameters
 dbow2:
-  score_min : 0.015
-  interval_min : 60
+  loop_score : 0.020
+  track_score : 0.015
 
 # g2o parameters
 g2o:
-  chi2_threshold : 100.0
+  chi2_threshold : 1000.0

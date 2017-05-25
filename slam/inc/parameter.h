@@ -34,18 +34,30 @@ public:
 	int kORBLevels_;
 	int kORBThresholdInit_;
 	int kORBThresholdMin_;
-	float kORBMatchRatio_;
+
+	// match parameters
+	float kMatchTrackRatio_;
+	float kMatchRelocalizeRatio_;
+	float kMatchLocalLoopRatio_;
+	float kMatchGlobalLoopRatio_;
+
+	// keyframe parameters
+	double kKeyframeNormMin_;
+	double kKeyframeNormMax_;
 
 	// point cloud filter parameters
 	int kFilterInterval_;
 	float kFilterDepthMax_;
 
 	// pnp parameters
-	int KPNPInliersThreshold_;
+	int KPNPTrackThreshold_;
+	int KPNPRelocalizeThreshold_;
+	int KPNPLocalLoopThreshold_;
+	int KPNPGlobalLoopThreshold_;
 
-	// dbow2 loop parameters
-	double kDBoW2ScoreMin_;
-	int kDBoW2IntervalMin_;
+	// dbow2 parameters
+	double kDBoW2TrackScore_;
+	double kDBoW2LoopScore_;
 
 	// g2o parameters
 	double kG2OChi2Threshold_;

@@ -15,7 +15,7 @@
 LoopClosing::LoopClosing(const Parameter &p_parameter, DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> *p_bow_vocabulary,
 	                     Map *p_map, QLineEdit *p_value_loop_count) :
 	local_error_sum_(0.0), global_error_sum_(0.0), not_optimize_count_(0), bow_vocabulary_(p_bow_vocabulary), map_(p_map),
-	value_loop_count_(p_value_loop_count), global_loop_count_(0)
+	value_loop_count_(p_value_loop_count), global_loop_count_(0), debug_time_(0)
 {
 	cv::Mat camera_k = cv::Mat::eye(3, 3, CV_32F);
 	camera_k.at<float>(0, 0) = p_parameter.kCameraParameters_.fx_;
@@ -23,11 +23,14 @@ LoopClosing::LoopClosing(const Parameter &p_parameter, DBoW2::TemplatedVocabular
 	camera_k.at<float>(0, 2) = p_parameter.kCameraParameters_.cx_;
 	camera_k.at<float>(1, 2) = p_parameter.kCameraParameters_.cy_;
 
-	bow_score_min_ = p_parameter.kDBoW2ScoreMin_;
-	bow_interval_min_ = p_parameter.kDBoW2IntervalMin_;
+	bow_score_min_ = p_parameter.kDBoW2LoopScore_;
 	chi2_threshold_ = p_parameter.kG2OChi2Threshold_;
+	match_local_loop_ratio_ = p_parameter.kMatchLocalLoopRatio_;
+	match_global_loop_ratio_ = p_parameter.kMatchGlobalLoopRatio_;
+	pnp_local_loop_threshold_ = p_parameter.KPNPLocalLoopThreshold_;
+	pnp_global_loop_threshold_ = p_parameter.KPNPGlobalLoopThreshold_;
 
-	pnp_solver_ = new PnPSolver(p_parameter.KPNPInliersThreshold_, p_parameter.kORBMatchRatio_, camera_k);
+	pnp_solver_ = new PnPSolver(p_parameter.KPNPLocalLoopThreshold_, p_parameter.kMatchLocalLoopRatio_, camera_k);
 
 	InitializeG2O();
 }
@@ -40,7 +43,7 @@ LoopClosing::~LoopClosing()
 void LoopClosing::InitializeG2O()
 {
 	g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType> *linear_solver = new g2o::LinearSolverEigen<g2o::BlockSolver_6_3::PoseMatrixType>();
-	//linear_solver->setBlockOrdering(false);
+	// linear_solver->setBlockOrdering(false);
 	g2o::BlockSolver_6_3 *block_solver = new g2o::BlockSolver_6_3(linear_solver);
 	g2o::OptimizationAlgorithmLevenberg *algorithm = new g2o::OptimizationAlgorithmLevenberg(block_solver);
 	optimizer_.setAlgorithm(algorithm);
@@ -49,6 +52,9 @@ void LoopClosing::InitializeG2O()
 
 void LoopClosing::GetKeyFrame(const Frame &p_frame)
 {
+	clock_t s, e;
+	s = clock();
+
 	current_frame_ = Frame(p_frame);
 	current_frame_.SetBowVector(*bow_vocabulary_);
 
@@ -70,12 +76,15 @@ void LoopClosing::GetKeyFrame(const Frame &p_frame)
 		map_->GetKeyFrames(key_frames_);
 	}
 
-	//SaveG2OFile("tracking.g2o");
+	e = clock();
+	debug_time_ += e - s;
+
+	// SaveG2OFile("tracking.g2o");
 }
 
 void LoopClosing::OptimizeLast()
 {
-	std::cout << "Last Optimizing..." << std::endl;
+	// std::cout << "Last Optimizing..." << std::endl;
 
 	optimizer_.initializeOptimization();
 	optimizer_.optimize(10);
@@ -86,7 +95,9 @@ void LoopClosing::OptimizeLast()
 		key_frames_[i].SetTransformWorldToCamera(vertex->estimate());
 	}
 
-	std::cout << "Optimized!" << std::endl;
+	// std::cout << "Optimized!" << std::endl;
+
+	// SaveG2OFile("final.g2o");
 
 	map_->GetKeyFrames(key_frames_, true);
 }
@@ -112,10 +123,11 @@ void LoopClosing::DetectLocalLoop()
 {
 	int32_t key_frames_size = (int32_t)key_frames_.size();
 
-	std::cout << "Detecting local loop closure..." << std::endl;
+	// std::cout << "Detecting local loop closure..." << std::endl;
 	const int32_t start_index = key_frames_size - 2;
-	const int32_t end_index = ((start_index - 10 + 1) >= 0) ? (start_index - 10 + 1) : 0;
-	pnp_solver_->ResetInliersThreshold(80);
+	const int32_t end_index = ((start_index - 5 + 1) >= 0) ? (start_index - 5 + 1) : 0;
+	pnp_solver_->ResetMatchRatio(match_local_loop_ratio_);
+	pnp_solver_->ResetInliersThreshold(pnp_local_loop_threshold_);
 
 	#pragma omp parallel for
 	for (int32_t i = start_index; i >= end_index; --i)
@@ -140,8 +152,8 @@ void LoopClosing::DetectLocalLoop()
 		#pragma omp critical (local_loop_section)
 		{
 			local_error_sum_ += edge->chi2();
-			std::cout << "Local loop closure with " << key_frame.id_ << ", error: " << edge->chi2()
-				<< ", total error: " << local_error_sum_ << std::endl;
+			// std::cout << "Local loop closure with " << key_frame.id_ << ", error: " << edge->chi2()
+			// 	<< ", total error: " << local_error_sum_ << std::endl;
 			optimizer_.addEdge(edge);
 		}
 	}
@@ -149,10 +161,11 @@ void LoopClosing::DetectLocalLoop()
 
 void LoopClosing::DetectGlobalLoop()
 {
-	std::cout << "Detecting global loop closure..." << std::endl;
+	// std::cout << "Detecting global loop closure..." << std::endl;
 	const std::vector<int32_t> loop_frames_index = GetLoopFrames();
 	const int32_t loop_frames_size = (int32_t)loop_frames_index.size();
-	pnp_solver_->ResetInliersThreshold(40);
+	pnp_solver_->ResetMatchRatio(match_global_loop_ratio_);
+	pnp_solver_->ResetInliersThreshold(pnp_global_loop_threshold_);
 
 	#pragma omp parallel for
 	for (int32_t i = 0; i < loop_frames_size; ++i)
@@ -166,8 +179,6 @@ void LoopClosing::DetectGlobalLoop()
 			continue;
 		}
 
-		++global_loop_count_;
-
 		g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 		edge->vertices()[0] = dynamic_cast<g2o::VertexSE3 *> (optimizer_.vertex(key_frame.id_));
 		edge->vertices()[1] = dynamic_cast<g2o::VertexSE3 *> (optimizer_.vertex(current_frame_.id_));
@@ -178,9 +189,10 @@ void LoopClosing::DetectGlobalLoop()
 
 		#pragma omp critical (global_loop_section)
 		{
+			++global_loop_count_;
 			global_error_sum_ += edge->chi2();
-			std::cout << "Global loop closure with " << key_frame.id_ << ", error: " << edge->chi2()
-				<< ", total error: " << global_error_sum_ << std::endl;
+			// std::cout << "Global loop closure with " << key_frame.id_ << ", error: " << edge->chi2()
+			// 	<< ", total error: " << global_error_sum_ << std::endl;
 			optimizer_.addEdge(edge);
 		}
 	}
@@ -193,7 +205,7 @@ void LoopClosing::LoopClose()
 
 	if ((global_error_sum_ > chi2_threshold_) || (local_error_sum_ > chi2_threshold_) || ((++not_optimize_count_) >= 10))
 	{
-		std::cout << "Optimizing..." << std::endl;
+		// std::cout << "Optimizing..." << std::endl;
 
 		optimizer_.initializeOptimization();
 		optimizer_.optimize(10);
@@ -208,7 +220,7 @@ void LoopClosing::LoopClose()
 		local_error_sum_ = 0.0;
 		not_optimize_count_ = 0;
 
-		std::cout << "Optimized!" << std::endl;
+		// std::cout << "Optimized!" << std::endl;
 
 		map_->GetKeyFrames(key_frames_);
 	}
@@ -225,7 +237,7 @@ std::vector<int32_t> LoopClosing::GetLoopFrames()
 	{
 		double score = bow_vocabulary_->score(current_frame_.bow_vector_, key_frames_[i].bow_vector_);
 		// std::cout << "DBoW2 score with " << key_frames_[i].id_ << " : " << score << std::endl;
-		if ((score > bow_score_min_) && ((current_frame_.id_ - key_frames_[i].id_) > bow_interval_min_))
+		if (score > bow_score_min_)
 		{
 			#pragma omp critical (bow_loop_section)
 			{

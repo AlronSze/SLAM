@@ -60,6 +60,8 @@ public:
 	openni::VideoStream *color_stream_;
 	openni::VideoStream *depth_stream_;
 
+	clock_t debug_time_;
+
 private:
 	Ui::MainWindowClass ui_;
 
