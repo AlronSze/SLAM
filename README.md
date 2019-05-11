@@ -25,6 +25,7 @@
 
 - [Qt](https://www.qt.io/) 5.9.6
 - [Kinect SDK](https://developer.microsoft.com/en-us/windows/kinect) 1.8
+- [OpenNI](https://structure.io/openni) 2.0
 - [g2o](https://github.com/RainerKuemmerle/g2o) (commit: 4bcabdf)
 - [OpenCV](https://github.com/opencv/opencv) 2.4.13.2
 - [PCL](https://github.com/PointCloudLibrary/pcl) 1.8.0
